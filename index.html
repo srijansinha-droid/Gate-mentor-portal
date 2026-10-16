@@ -65,6 +65,8 @@
   .stat{background:linear-gradient(135deg,#ede9fe,#f5f3ff);padding:14px;border-radius:12px;border:1px solid #ddd6fe}
   .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
   .stat .v{font-size:22px;font-weight:800;color:var(--brand);margin-top:4px}
+  .stat.mcd{background:linear-gradient(135deg,#fef3c7,#fffbeb);border-color:#fcd34d}
+  .stat.mcd .v{color:#92400e}
   table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
   th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
   th{background:#f5f3ff;color:var(--brand);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
@@ -91,6 +93,7 @@
   .status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
   .status-badge.draft{background:#fef3c7;color:#92400e}
   .status-badge.final{background:#dcfce7;color:#166534}
+  .status-badge.leave{background:#e0e7ff;color:#3730a3}
 </style>
 </head>
 <body>
@@ -165,7 +168,7 @@
     <div class="user">
       <span id="hdr_name"></span>
       <span class="badge hidden" id="hdr_admin">ADMIN</span>
-      <button class="logout" id="btnLogout" onclick="doLogout()" disabled>Logout</button>
+      <button class="logout" id="btnLogout" onclick="doLogout()">Logout</button>
     </div>
   </header>
 
@@ -191,7 +194,6 @@
       </div>
 
       <div id="reportStatusBanner"></div>
-
       <div class="divider"></div>
 
       <div class="section-title" style="margin-top:0">📘 Assigned Counts</div>
@@ -229,7 +231,7 @@
     </div>
   </div>
 
-  <!-- ========== MY REPORTS (mentor's past) ========== -->
+  <!-- ========== MY REPORTS ========== -->
   <div class="panel" id="panel-myreports">
     <div class="card">
       <h2 style="margin-top:0">📋 My Past Reports</h2>
@@ -264,7 +266,7 @@
     </div>
   </div>
 
-  <!-- ========== DASHBOARD (Admin only) ========== -->
+  <!-- ========== DASHBOARD ========== -->
   <div class="panel" id="panel-dashboard">
     <div class="card">
       <h2 style="margin-top:0">📊 Dashboard</h2>
@@ -290,6 +292,17 @@
       <div id="dash_results" style="margin-top:22px">
         <div class="empty">Apply filters and click Run Report.</div>
       </div>
+    </div>
+
+    <!-- NEW: Monthly MCD -->
+    <div class="card" id="monthlyMcdCard">
+      <h3 style="margin-top:0">📅 Monthly Total MCD</h3>
+      <p class="muted">Select a month to see total MCD count and per-mentor breakdown.</p>
+      <div class="row-flex">
+        <input type="month" id="mm_month" style="max-width:200px">
+        <button class="btn" id="btnMmLoad" onclick="loadMonthlyMCD()"><span class="lbl">📅 Get Monthly MCD</span></button>
+      </div>
+      <div id="mm_results" style="margin-top:16px"></div>
     </div>
 
     <div class="card" id="dailyStatusCard" style="display:none">
@@ -405,17 +418,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========================================================
-   ⚠️ PASTE YOUR APPS SCRIPT URL BELOW ⚠️
-   ========================================================= */
 const DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbwRq0B2mac2EQB1i_rSKdhx_QB8ID8BgJJ0jgVYozIU-f9jSCtTw3T78F4ox96VYx4sGA/exec';
-/* ========================================================= */
 
 const STATE = {
   token:null, email:null, name:null, isAdmin:false,
   mentors:[], allMentors:[], categories:[], branches:[],
   today:null, pendingEmail:null, pendingOtp:null,
-  currentReportStatus:null, currentReportKey:null
+  currentReportStatus:null
 };
 
 function $(id){ return document.getElementById(id); }
@@ -443,23 +452,45 @@ function btnDone(id){
   btn.disabled = false;
 }
 
-async function api(fn, ...args){
-  if (!DEPLOY_URL || DEPLOY_URL.includes('PASTE_YOUR')) return { ok:false, error:'DEPLOY_URL not set.' };
-  try {
-    const res = await fetch(DEPLOY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ fn: fn, args: args }),
-      redirect: 'follow'
-    });
-    if (!res.ok) return { ok:false, error:'HTTP ' + res.status };
-    const text = await res.text();
-    try { return JSON.parse(text); }
-    catch (e) { return { ok:false, error:'Bad response: ' + text.substring(0, 200) }; }
-  } catch (e) {
-    return { ok:false, error:'Network error: ' + e.message };
+/* ---------- API with retry (fixes 404/backend errors) ---------- */
+async function apiOnce(fn, args){
+  const res = await fetch(DEPLOY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ fn: fn, args: args }),
+    redirect: 'follow'
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch (e) {
+    // Detect HTML response (login page returned instead of JSON)
+    if (text.indexOf('<!DOCTYPE') === 0 || text.indexOf('<html') >= 0) {
+      throw new Error('Backend returned HTML instead of JSON. Check deployment access (Anyone).');
+    }
+    throw new Error('Bad response: ' + text.substring(0, 150));
   }
 }
+
+async function api(fn, ...args){
+  if (!DEPLOY_URL || DEPLOY_URL.includes('PASTE_YOUR')) return { ok:false, error:'DEPLOY_URL not set.' };
+  let lastErr = 'Unknown error';
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await apiOnce(fn, args);
+      if (r && typeof r === 'object' && 'ok' in r) return r;
+      lastErr = 'Invalid response format';
+    } catch (e) {
+      lastErr = e.message;
+      // Don't retry on HTTP 401 (auth issue)
+      if (lastErr.indexOf('401') !== -1) break;
+      // Wait before retry (exponential backoff)
+      if (attempt < 3) await new Promise(res => setTimeout(res, 800 * attempt));
+    }
+  }
+  return { ok:false, error:lastErr };
+}
+
 function unwrap(res){
   if (!res) return { ok:false, error:'Empty response.' };
   if (!res.ok && res.error === 'SESSION_EXPIRED') {
@@ -472,7 +503,7 @@ function saveToken(t){ try{localStorage.setItem('gate_token', t);}catch(e){} }
 function getToken(){ try{return localStorage.getItem('gate_token');}catch(e){return null;} }
 function clearToken(){ try{localStorage.removeItem('gate_token');}catch(e){} }
 
-/* ---------- LocalStorage form persistence (CHANGE 9) ---------- */
+/* ---------- Form persistence ---------- */
 function saveDraftToLocal(){
   try {
     const ids = ['r_date','r_mentor','r_branch','r_category',
@@ -496,7 +527,6 @@ function clearDraftFromLocal(){
   try { localStorage.removeItem('gate_form_draft'); } catch(e){}
 }
 
-/* ---------- SERVER CHECK ---------- */
 async function checkServer(){
   const r = await api('pingServer');
   if (!r || !r.ok) {
@@ -545,7 +575,6 @@ async function sendOtp(isResend){
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Enter a valid email', 'err');
 
   const btnId = isResend ? 'btnResend' : 'btnSendOtp';
-  // CHANGE 8: Instant spinner
   btnBusy(btnId, 'Sending…');
   showLoader('Sending OTP…');
 
@@ -607,16 +636,20 @@ async function verifyLogin(){
   if (resendTimerInterval) { clearInterval(resendTimerInterval); resendTimerInterval = null; }
 }
 
-/* ---------- CHANGE 4: Logout Fix ---------- */
+/* ---------- Logout (fixed) ---------- */
 async function doLogout(){
   if (!confirm('Are you sure you want to logout?')) return;
   showLoader('Logging out…');
-  if (STATE.token) {
-    try { await api('logout', STATE.token); } catch(e){}
-  }
+  try {
+    if (STATE.token) await api('logout', STATE.token);
+  } catch(e){}
   clearToken();
   STATE.token = null;
-  setTimeout(() => location.reload(), 300);
+  STATE.email = null;
+  STATE.name = null;
+  STATE.isAdmin = false;
+  clearDraftFromLocal();
+  setTimeout(() => location.reload(), 200);
 }
 
 /* ---------- APP ---------- */
@@ -633,7 +666,6 @@ async function enterApp(){
   $('loginScreen').classList.add('hidden');
   $('appScreen').classList.remove('hidden');
   $('hdr_name').textContent = d.myName + ' • ' + d.email;
-  $('btnLogout').disabled = false;   // CHANGE 4: enable logout
 
   if (d.isAdmin) {
     $('hdr_admin').classList.remove('hidden');
@@ -641,30 +673,30 @@ async function enterApp(){
     $('dashboardTab').classList.remove('hidden');
     const dsCard = $('dailyStatusCard');
     if (dsCard) dsCard.style.display = 'block';
+    const mmCard = $('monthlyMcdCard');
+    if (mmCard) mmCard.style.display = 'block';
+    if ($('mm_month')) $('mm_month').value = STATE.today.substring(0,7);
   } else {
-    // CHANGE 1: Mentor sees My Reports tab
     $('myreportsTab').classList.remove('hidden');
     $('dashboardTab').classList.add('hidden');
+    const mmCard = $('monthlyMcdCard');
+    if (mmCard) mmCard.style.display = 'none';
   }
 
   populateSelects();
   setupTabs();
   setupLockBanners();
-  if (d.isAdmin) renderAdminLists();
+  if (d.isAdmin) { renderAdminLists(); loadCoAdmins(); }
 
-  // CHANGE 3: Restrict date picker to today for mentors
   if (!d.isAdmin) {
-    const dateInputs = ['r_date'];
-    dateInputs.forEach(id => {
+    ['r_date'].forEach(id => {
       const el = $(id); if (el) { el.min = STATE.today; el.max = STATE.today; el.value = STATE.today; }
     });
   }
 
-  // CHANGE 9: Restore form from local storage if exists
   const restored = loadDraftFromLocal();
   if (restored) toast('Previous form data restored 📝', 'ok');
 
-  // Attach autosave listeners
   ['r_date','r_mentor','r_branch','r_category',
    'r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
    'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
@@ -718,7 +750,6 @@ function setupLockBanners(){
   $('lockReport').innerHTML = msg;
 }
 
-/* ---------- CHANGE 2: Validation ---------- */
 function validateReportFields(){
   const requiredIds = ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
                        'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup'];
@@ -727,24 +758,18 @@ function validateReportFields(){
     const el = $(id);
     if (el) {
       const v = String(el.value).trim();
-      if (v === '') {
-        el.classList.add('err');
-        missing.push(id);
-      } else {
-        el.classList.remove('err');
-      }
+      if (v === '') { el.classList.add('err'); missing.push(id); }
+      else { el.classList.remove('err'); }
     }
   });
   if (missing.length > 0) {
     toast('⚠️ All fields are required. If count is zero, please enter 0.', 'err');
-    const first = $(missing[0]);
-    if (first) first.focus();
+    const first = $(missing[0]); if (first) first.focus();
     return false;
   }
   return true;
 }
 
-/* ---------- REPORT ---------- */
 async function loadExistingReport(){
   const date = $('r_date').value;
   const mentor = $('r_mentor').value;
@@ -761,7 +786,6 @@ async function loadExistingReport(){
   if (!r.data.exists) {
     banner.innerHTML = '<div class="note" style="margin-top:14px">✨ New report — fill and Save Draft or Final Submit.</div>';
     STATE.currentReportStatus = null;
-    STATE.currentReportKey = null;
     if (!loadDraftFromLocal()) {
       ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
        'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
@@ -813,8 +837,6 @@ async function submitReport(status){
   const branch = $('r_branch').value;
   const category = $('r_category').value;
   if (!date || !mentor || !branch || !category) return toast('Fill Date, Mentor, Branch, Category', 'err');
-
-  // CHANGE 2: All fields required
   if (!validateReportFields()) return;
 
   if (status === 'Final') {
@@ -851,7 +873,7 @@ function resetReportForm(){
   toast('Form reset', 'ok');
 }
 
-/* ---------- MY REPORTS (mentor's) ---------- */
+/* ---------- MY REPORTS ---------- */
 async function loadMyReports(){
   const from = $('mr_from').value, to = $('mr_to').value;
   btnBusy('btnMrLoad', 'Loading…');
@@ -867,13 +889,13 @@ async function loadMyReports(){
 
   let html = '';
   html += '<div class="section-title">📘 My Assigned Reports (' + assigned.length + ')</div>';
-  html += tableGeneric(assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status'], false);
+  html += tableGeneric(assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
   html += '<div class="section-title" style="margin-top:22px">⏳ My Pending Reports (' + pending.length + ')</div>';
-  html += tableGeneric(pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status'], false);
+  html += tableGeneric(pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']);
   $('myReportsResults').innerHTML = html;
 }
 
-function tableGeneric(rows, cols, showDelete){
+function tableGeneric(rows, cols){
   if (!rows.length) return '<div class="empty">No records.</div>';
   let h = '<div style="overflow-x:auto"><table><thead><tr>';
   cols.forEach(c => h += '<th>' + c + '</th>');
@@ -882,8 +904,9 @@ function tableGeneric(rows, cols, showDelete){
     h += '<tr>';
     cols.forEach(k => {
       if (k === 'Status') {
-        const cls = r.Status === 'Final' ? 'final' : 'draft';
-        h += `<td><span class="status-badge ${cls}">${esc(r.Status || 'Draft')}</span></td>`;
+        const v = String(r.Status || 'Draft');
+        const cls = v === 'Final' ? 'final' : (v === 'Leave' ? 'leave' : 'draft');
+        h += `<td><span class="status-badge ${cls}">${esc(v)}</span></td>`;
       } else {
         h += '<td>' + esc(r[k]) + '</td>';
       }
@@ -939,23 +962,63 @@ function renderDashboard(d, type){
 
   if (type !== 'pending') {
     html += `<div class="section-title">📘 Assigned Totals (${tA.count} rows)</div><div class="stat-grid">`;
-    ['FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD'].forEach(k => html += statBox(k, tA[k]));
+    ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += statBox(k, tA[k]));
     html += `</div>`;
     html += '<div class="section-title" style="margin-top:22px">📘 Assigned Details</div>';
-    html += tableGeneric(d.assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status'], true);
+    html += tableGeneric(d.assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
   }
   if (type !== 'assigned') {
     html += `<div class="section-title" style="margin-top:22px">⏳ Pending Totals (${tP.count} rows)</div><div class="stat-grid">`;
     ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += statBox(k, tP[k]));
     html += `</div>`;
     html += '<div class="section-title" style="margin-top:22px">⏳ Pending Details</div>';
-    html += tableGeneric(d.pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status'], true);
+    html += tableGeneric(d.pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']);
   }
   if (d.leaves && d.leaves.length) {
     html += '<div class="section-title" style="margin-top:22px">🌴 Leaves in range</div>';
     html += '<div>' + d.leaves.map(l => `<span class="chip">${esc(l.Mentor)}: ${esc(l.FromDate)} → ${esc(l.ToDate)}</span>`).join('') + '</div>';
   }
   $('dash_results').innerHTML = html;
+}
+
+/* ---------- MONTHLY MCD (NEW) ---------- */
+async function loadMonthlyMCD(){
+  const ym = $('mm_month').value;
+  if (!ym) return toast('Select a month', 'err');
+  btnBusy('btnMmLoad', 'Loading…');
+  const r = await api('getMonthlyMCD', STATE.token, ym);
+  btnDone('btnMmLoad');
+  if (!r.ok) { $('mm_results').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
+  renderMonthlyMCD(r.data);
+}
+
+function renderMonthlyMCD(d){
+  const monthName = new Date(d.yearMonth + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  let html = '';
+  html += `<div class="section-title" style="margin-top:0">${esc(monthName)}</div>`;
+  html += `<div class="stat-grid">
+    <div class="stat mcd"><div class="k">Total MCD (all mentors)</div><div class="v">${d.totalMCD}</div></div>
+  </div>`;
+
+  html += '<div class="section-title" style="margin-top:22px">Per Mentor Breakdown</div>';
+  html += '<table><thead><tr><th>Mentor</th><th>MCD Total</th></tr></thead><tbody>';
+  d.mentors.forEach(m => {
+    html += `<tr><td>${esc(m)}</td><td><b>${d.perMentor[m] || 0}</b></td></tr>`;
+  });
+  html += '</tbody></table>';
+
+  const daily = Object.entries(d.dailyMCD).sort((a,b) => a[0].localeCompare(b[0]));
+  if (daily.length) {
+    html += '<div class="section-title" style="margin-top:22px">Daily MCD</div>';
+    html += '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>MCD</th></tr></thead><tbody>';
+    daily.forEach(([date, val]) => {
+      html += `<tr><td>${esc(date)}</td><td>${val}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  } else {
+    html += '<div class="empty" style="margin-top:22px">No MCD entries for this month.</div>';
+  }
+  $('mm_results').innerHTML = html;
 }
 
 async function downloadCSV(type){
@@ -1031,26 +1094,41 @@ async function renderAdminLists(){
   $('branch_list').innerHTML = STATE.branches.map(b =>
     `<span class="chip">${esc(b.Name)}<button onclick="removeBranch('${esc(b.Name)}')">✕</button></span>`
   ).join('') || '<span class="muted">No branches</span>';
-
-  // Render co-admins
-  try {
-    const boot = await api('getBootstrap', STATE.token);
-    if (boot.ok) {
-      // Co-admins will be rendered on next refresh via separate call
-    }
-  } catch(e){}
-  renderCoAdmins();
 }
 
-async function renderCoAdmins(){
-  // We'll fetch admins via a lightweight call — piggyback on getBootstrap won't work.
-  // So instead we call it indirectly: request all admins via getDashboard? No.
-  // Simplest: add a small endpoint. For now, render from a cached call.
-  // To keep it simple, we request admins via a dedicated wrapper.
-  try {
-    const r = await api('getBootstrap', STATE.token); // returns bootstrap
-    // Admins list isn't included; skip for now
-  } catch(e){}
+async function loadCoAdmins(){
+  const r = await api('adminListAdmins', STATE.token);
+  if (!r || !r.ok) return;
+  const admins = r.data.admins;
+  $('admin_list').innerHTML = admins.map(a => {
+    const isPrimary = a.IsPrimary;
+    const inactive = !a.Active;
+    return `<span class="chip ${inactive?'inactive':''}">
+      ${esc(a.Name)} <span class="muted">(${esc(a.Email)})</span>
+      ${isPrimary ? '<span class="muted">★ Primary</span>' : `<button onclick="removeCoAdmin('${esc(a.Email)}')">✕</button>`}
+    </span>`;
+  }).join('') || '<span class="muted">No co-admins</span>';
+}
+
+async function addCoAdmin(){
+  const name = $('new_a_name').value.trim();
+  const email = $('new_a_email').value.trim().toLowerCase();
+  if (!name || !email) return toast('Name and Email required', 'err');
+  btnBusy('btnAddAdmin', 'Adding…');
+  const r = unwrap(await api('adminAddAdmin', STATE.token, name, email));
+  btnDone('btnAddAdmin');
+  if (!r.ok) return toast(r.error, 'err');
+  toast(r.data.message, 'ok');
+  $('new_a_name').value = ''; $('new_a_email').value = '';
+  loadCoAdmins();
+}
+
+async function removeCoAdmin(email){
+  if (!confirm('Remove co-admin: ' + email + '?')) return;
+  showLoader('Removing…');
+  const r = unwrap(await api('adminRemoveAdmin', STATE.token, email));
+  hideLoader(); if (!r.ok) return toast(r.error, 'err');
+  toast(r.data.message, 'ok'); loadCoAdmins();
 }
 
 async function addCategory(){
@@ -1128,25 +1206,6 @@ async function removeBranch(name){
   const r = unwrap(await api('adminRemoveBranch', STATE.token, name));
   hideLoader(); if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); await refreshLists();
-}
-
-async function addCoAdmin(){
-  const name = $('new_a_name').value.trim();
-  const email = $('new_a_email').value.trim().toLowerCase();
-  if (!name || !email) return toast('Name and Email required', 'err');
-  btnBusy('btnAddAdmin', 'Adding…');
-  const r = unwrap(await api('adminAddAdmin', STATE.token, name, email));
-  btnDone('btnAddAdmin');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok');
-  $('new_a_name').value = ''; $('new_a_email').value = '';
-  renderCoAdminsUI();
-}
-
-async function renderCoAdminsUI(){
-  // We need an endpoint to list admins. Simpler approach: parse from another call.
-  // For now, we refresh bootstrap (may not include admins) — replace with targeted call if needed.
-  // Instead show a message.
 }
 
 async function refreshLists(){
