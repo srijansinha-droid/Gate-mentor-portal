@@ -58,7 +58,6 @@
   .btn.ghost:hover:not(:disabled){background:#f5f3ff;transform:none;box-shadow:none}
   .btn.danger{background:var(--err)}
   .btn.warn{background:var(--warn)}
-  .btn.small{padding:6px 12px;font-size:12px}
   .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
   .row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
@@ -103,7 +102,7 @@
   <div class="msg" id="loaderMsg">Please wait…</div>
 </div>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div class="login-wrap" id="loginScreen">
   <div class="login-card">
     <h1>🎓 GATE Mentor Report Portal</h1>
@@ -161,7 +160,7 @@
   </div>
 </div>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <div id="appScreen" class="hidden">
   <header>
     <h1>🎓 GATE Mentor Report Portal</h1>
@@ -180,58 +179,46 @@
     <div class="tab hidden" data-panel="admin" id="adminTab">⚙️ Admin</div>
   </div>
 
-  <!-- ========== DAILY REPORT ========== -->
   <div class="panel active" id="panel-report">
     <div class="card">
       <h2 style="margin-top:0">📝 Daily Report</h2>
       <div class="lock-banner" id="lockReport"></div>
-
       <div class="grid">
         <div><label>Date</label><input type="date" id="r_date" onchange="loadExistingReport()"></div>
         <div><label>Mentor</label><select id="r_mentor" onchange="loadExistingReport()"></select></div>
         <div><label>Branch</label><select id="r_branch" onchange="loadExistingReport()"></select></div>
         <div><label>Category</label><select id="r_category" onchange="loadExistingReport()"></select></div>
       </div>
-
       <div id="reportStatusBanner"></div>
       <div class="divider"></div>
-
       <div class="section-title" style="margin-top:0">📘 Assigned Counts</div>
       <div class="grid">
-        <div><label>FMCR *</label><input type="number" min="0" placeholder="Enter count" id="r_a_FMCR" class="req"></div>
-        <div><label>MCR *</label><input type="number" min="0" placeholder="Enter count" id="r_a_MCR" class="req"></div>
-        <div><label>DNP1 *</label><input type="number" min="0" placeholder="Enter count" id="r_a_DNP1" class="req"></div>
-        <div><label>DNP2 *</label><input type="number" min="0" placeholder="Enter count" id="r_a_DNP2" class="req"></div>
-        <div><label>DNP3 *</label><input type="number" min="0" placeholder="Enter count" id="r_a_DNP3" class="req"></div>
-        <div><label>Followup *</label><input type="number" min="0" placeholder="Enter count" id="r_a_Followup" class="req"></div>
-        <div><label>MCD *</label><input type="number" min="0" placeholder="Enter count" id="r_a_MCD" class="req"></div>
+        <div><label>FMCR *</label><input type="number" min="0" placeholder="Enter count" id="r_a_FMCR"></div>
+        <div><label>MCR *</label><input type="number" min="0" placeholder="Enter count" id="r_a_MCR"></div>
+        <div><label>DNP1 *</label><input type="number" min="0" placeholder="Enter count" id="r_a_DNP1"></div>
+        <div><label>DNP2 *</label><input type="number" min="0" placeholder="Enter count" id="r_a_DNP2"></div>
+        <div><label>DNP3 *</label><input type="number" min="0" placeholder="Enter count" id="r_a_DNP3"></div>
+        <div><label>Followup *</label><input type="number" min="0" placeholder="Enter count" id="r_a_Followup"></div>
+        <div><label>MCD *</label><input type="number" min="0" placeholder="Enter count" id="r_a_MCD"></div>
       </div>
-
       <div class="divider"></div>
-
       <div class="section-title" style="margin-top:0">⏳ Pending Counts</div>
       <div class="grid">
-        <div><label>FMCR *</label><input type="number" min="0" placeholder="Enter count" id="r_p_FMCR" class="req"></div>
-        <div><label>MCR *</label><input type="number" min="0" placeholder="Enter count" id="r_p_MCR" class="req"></div>
-        <div><label>DNP1 *</label><input type="number" min="0" placeholder="Enter count" id="r_p_DNP1" class="req"></div>
-        <div><label>DNP2 *</label><input type="number" min="0" placeholder="Enter count" id="r_p_DNP2" class="req"></div>
-        <div><label>DNP3 *</label><input type="number" min="0" placeholder="Enter count" id="r_p_DNP3" class="req"></div>
-        <div><label>Followup *</label><input type="number" min="0" placeholder="Enter count" id="r_p_Followup" class="req"></div>
+        <div><label>FMCR *</label><input type="number" min="0" placeholder="Enter count" id="r_p_FMCR"></div>
+        <div><label>MCR *</label><input type="number" min="0" placeholder="Enter count" id="r_p_MCR"></div>
+        <div><label>DNP1 *</label><input type="number" min="0" placeholder="Enter count" id="r_p_DNP1"></div>
+        <div><label>DNP2 *</label><input type="number" min="0" placeholder="Enter count" id="r_p_DNP2"></div>
+        <div><label>DNP3 *</label><input type="number" min="0" placeholder="Enter count" id="r_p_DNP3"></div>
+        <div><label>Followup *</label><input type="number" min="0" placeholder="Enter count" id="r_p_Followup"></div>
       </div>
-
       <div class="row-flex" style="margin-top:24px">
-        <button class="btn ghost" id="btnSaveDraft" onclick="submitReport('Draft')">
-          <span class="lbl">💾 Save Draft</span>
-        </button>
-        <button class="btn" id="btnFinalSubmit" onclick="submitReport('Final')">
-          <span class="lbl">🔒 Final Submit</span>
-        </button>
+        <button class="btn ghost" id="btnSaveDraft" onclick="submitReport('Draft')"><span class="lbl">💾 Save Draft</span></button>
+        <button class="btn" id="btnFinalSubmit" onclick="submitReport('Final')"><span class="lbl">🔒 Final Submit</span></button>
         <button class="btn ghost" onclick="resetReportForm()">Reset</button>
       </div>
     </div>
   </div>
 
-  <!-- ========== MY REPORTS ========== -->
   <div class="panel" id="panel-myreports">
     <div class="card">
       <h2 style="margin-top:0">📋 My Past Reports</h2>
@@ -248,7 +235,6 @@
     </div>
   </div>
 
-  <!-- ========== LEAVE ========== -->
   <div class="panel" id="panel-leave">
     <div class="card">
       <h2 style="margin-top:0">🌴 Apply for Leave</h2>
@@ -266,7 +252,6 @@
     </div>
   </div>
 
-  <!-- ========== DASHBOARD ========== -->
   <div class="panel" id="panel-dashboard">
     <div class="card">
       <h2 style="margin-top:0">📊 Dashboard</h2>
@@ -294,20 +279,21 @@
       </div>
     </div>
 
-    <!-- NEW: Monthly MCD -->
     <div class="card" id="monthlyMcdCard">
-      <h3 style="margin-top:0">📅 Monthly Total MCD</h3>
-      <p class="muted">Select a month to see total MCD count and per-mentor breakdown.</p>
-      <div class="row-flex">
-        <input type="month" id="mm_month" style="max-width:200px">
-        <button class="btn" id="btnMmLoad" onclick="loadMonthlyMCD()"><span class="lbl">📅 Get Monthly MCD</span></button>
+      <h3 style="margin-top:0">📅 Total MCD (Date Range)</h3>
+      <p class="muted">Select from date and to date to see total MCD count and per-mentor breakdown.</p>
+      <div class="grid">
+        <div><label>From Date</label><input type="date" id="mm_from"></div>
+        <div><label>To Date</label><input type="date" id="mm_to"></div>
+      </div>
+      <div class="row-flex" style="margin-top:12px">
+        <button class="btn" id="btnMmLoad" onclick="loadMonthlyMCD()"><span class="lbl">📅 Get MCD Report</span></button>
       </div>
       <div id="mm_results" style="margin-top:16px"></div>
     </div>
 
-    <div class="card" id="dailyStatusCard" style="display:none">
+    <div class="card" id="dailyStatusCard">
       <h3 style="margin-top:0">📅 Daily Submission Tracker</h3>
-      <p class="muted">See who submitted, who didn't — day by day.</p>
       <div class="grid">
         <div><label>From Date</label><input type="date" id="ds_from"></div>
         <div><label>To Date</label><input type="date" id="ds_to"></div>
@@ -325,7 +311,6 @@
     </div>
   </div>
 
-  <!-- ========== ADMIN ========== -->
   <div class="panel" id="panel-admin">
     <div class="card">
       <h2 style="margin-top:0">⚙️ Admin Control Panel</h2>
@@ -353,8 +338,7 @@
       </div>
       <div id="branch_list" style="margin-top:12px"></div>
 
-      <div class="section-title" style="margin-top:26px">4. Co-Admins (share admin access)</div>
-      <p class="muted">Add co-admins. They login with their email + OTP + the same admin code.</p>
+      <div class="section-title" style="margin-top:26px">4. Co-Admins</div>
       <div class="row-flex">
         <input id="new_a_name" placeholder="Admin Name" style="max-width:200px">
         <input id="new_a_email" placeholder="admin@pw.live" style="max-width:240px">
@@ -375,7 +359,6 @@
         <div><label>Branch</label><select id="ov_branch"></select></div>
         <div><label>Category</label><select id="ov_category"></select></div>
       </div>
-
       <div class="section-title">📘 Assigned Counts</div>
       <div class="grid">
         <div><label>FMCR</label><input type="number" min="0" placeholder="0" id="ov_a_FMCR"></div>
@@ -386,7 +369,6 @@
         <div><label>Followup</label><input type="number" min="0" placeholder="0" id="ov_a_Followup"></div>
         <div><label>MCD</label><input type="number" min="0" placeholder="0" id="ov_a_MCD"></div>
       </div>
-
       <div class="section-title">⏳ Pending Counts</div>
       <div class="grid">
         <div><label>FMCR</label><input type="number" min="0" placeholder="0" id="ov_p_FMCR"></div>
@@ -396,7 +378,6 @@
         <div><label>DNP3</label><input type="number" min="0" placeholder="0" id="ov_p_DNP3"></div>
         <div><label>Followup</label><input type="number" min="0" placeholder="0" id="ov_p_Followup"></div>
       </div>
-
       <div class="row-flex" style="margin-top:16px">
         <button class="btn" id="btnOverride" onclick="submitOverride()"><span class="lbl">💾 Save Override</span></button>
       </div>
@@ -423,8 +404,7 @@ const DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbwRq0B2mac2EQB1i_rSK
 const STATE = {
   token:null, email:null, name:null, isAdmin:false,
   mentors:[], allMentors:[], categories:[], branches:[],
-  today:null, pendingEmail:null, pendingOtp:null,
-  currentReportStatus:null
+  today:null, pendingEmail:null, pendingOtp:null, currentReportStatus:null
 };
 
 function $(id){ return document.getElementById(id); }
@@ -452,7 +432,7 @@ function btnDone(id){
   btn.disabled = false;
 }
 
-/* ---------- API with retry (fixes 404/backend errors) ---------- */
+/* ---------- API with retry ---------- */
 async function apiOnce(fn, args){
   const res = await fetch(DEPLOY_URL, {
     method: 'POST',
@@ -464,14 +444,12 @@ async function apiOnce(fn, args){
   const text = await res.text();
   try { return JSON.parse(text); }
   catch (e) {
-    // Detect HTML response (login page returned instead of JSON)
     if (text.indexOf('<!DOCTYPE') === 0 || text.indexOf('<html') >= 0) {
-      throw new Error('Backend returned HTML instead of JSON. Check deployment access (Anyone).');
+      throw new Error('Backend returned HTML instead of JSON. Check deployment access is "Anyone".');
     }
     throw new Error('Bad response: ' + text.substring(0, 150));
   }
 }
-
 async function api(fn, ...args){
   if (!DEPLOY_URL || DEPLOY_URL.includes('PASTE_YOUR')) return { ok:false, error:'DEPLOY_URL not set.' };
   let lastErr = 'Unknown error';
@@ -482,9 +460,7 @@ async function api(fn, ...args){
       lastErr = 'Invalid response format';
     } catch (e) {
       lastErr = e.message;
-      // Don't retry on HTTP 401 (auth issue)
       if (lastErr.indexOf('401') !== -1) break;
-      // Wait before retry (exponential backoff)
       if (attempt < 3) await new Promise(res => setTimeout(res, 800 * attempt));
     }
   }
@@ -527,17 +503,7 @@ function clearDraftFromLocal(){
   try { localStorage.removeItem('gate_form_draft'); } catch(e){}
 }
 
-async function checkServer(){
-  const r = await api('pingServer');
-  if (!r || !r.ok) {
-    showDiag('❌ Cannot reach backend.\n\nError: ' + (r && r.error ? r.error : 'unknown'));
-    return false;
-  }
-  clearDiag();
-  return true;
-}
-
-/* ---------- LOGIN ---------- */
+/* ---------- Login ---------- */
 let resendTimerInterval = null;
 
 function setStep(n){
@@ -577,12 +543,9 @@ async function sendOtp(isResend){
   const btnId = isResend ? 'btnResend' : 'btnSendOtp';
   btnBusy(btnId, 'Sending…');
   showLoader('Sending OTP…');
-
   const r = unwrap(await api('requestOtp', email));
-
   hideLoader();
   btnDone(btnId);
-
   if (!r.ok) { showDiag('❌ ' + r.error); return toast(r.error, 'err'); }
 
   STATE.pendingEmail = email;
@@ -613,30 +576,22 @@ function goToStep3(){
 async function verifyLogin(){
   const code = ($('login_code').value || '').trim();
   if (!code) return toast('Enter your Security Code', 'err');
-
   btnBusy('btnVerify', 'Verifying…');
   showLoader('Logging in…');
-
   const r = unwrap(await api('verifyOtp', STATE.pendingEmail, STATE.pendingOtp, code));
-
   hideLoader();
   btnDone('btnVerify');
-
-  if (!r.ok) { setStep(2); return toast(r.error, 'err'); }
-
-  STATE.token = r.data.token;
-  STATE.email = r.data.email;
-  STATE.name = r.data.name;
-  STATE.isAdmin = r.data.isAdmin;
+  if (!r.ok) { setStep(3); return toast(r.error, 'err'); }
+  STATE.token = r.data.token; STATE.email = r.data.email;
+  STATE.name = r.data.name; STATE.isAdmin = r.data.isAdmin;
   saveToken(STATE.token);
-
   showLoader('Loading portal…');
   await enterApp();
   hideLoader();
   if (resendTimerInterval) { clearInterval(resendTimerInterval); resendTimerInterval = null; }
 }
 
-/* ---------- Logout (fixed) ---------- */
+/* ---------- Logout (always enabled) ---------- */
 async function doLogout(){
   if (!confirm('Are you sure you want to logout?')) return;
   showLoader('Logging out…');
@@ -644,15 +599,11 @@ async function doLogout(){
     if (STATE.token) await api('logout', STATE.token);
   } catch(e){}
   clearToken();
-  STATE.token = null;
-  STATE.email = null;
-  STATE.name = null;
-  STATE.isAdmin = false;
   clearDraftFromLocal();
   setTimeout(() => location.reload(), 200);
 }
 
-/* ---------- APP ---------- */
+/* ---------- App ---------- */
 async function enterApp(){
   showLoader('Loading portal…');
   const r = unwrap(await api('getBootstrap', STATE.token));
@@ -671,16 +622,13 @@ async function enterApp(){
     $('hdr_admin').classList.remove('hidden');
     $('adminTab').classList.remove('hidden');
     $('dashboardTab').classList.remove('hidden');
-    const dsCard = $('dailyStatusCard');
-    if (dsCard) dsCard.style.display = 'block';
-    const mmCard = $('monthlyMcdCard');
-    if (mmCard) mmCard.style.display = 'block';
-    if ($('mm_month')) $('mm_month').value = STATE.today.substring(0,7);
+    if ($('monthlyMcdCard')) $('monthlyMcdCard').style.display = 'block';
+    if ($('dailyStatusCard')) $('dailyStatusCard').style.display = 'block';
   } else {
     $('myreportsTab').classList.remove('hidden');
     $('dashboardTab').classList.add('hidden');
-    const mmCard = $('monthlyMcdCard');
-    if (mmCard) mmCard.style.display = 'none';
+    if ($('monthlyMcdCard')) $('monthlyMcdCard').style.display = 'none';
+    if ($('dailyStatusCard')) $('dailyStatusCard').style.display = 'none';
   }
 
   populateSelects();
@@ -727,6 +675,7 @@ function populateSelects(){
   $('d_to').value = STATE.today;
   if ($('ds_from')) { $('ds_from').value = STATE.today; $('ds_to').value = STATE.today; }
   if ($('mr_from')) { $('mr_from').value = STATE.today; $('mr_to').value = STATE.today; }
+  if ($('mm_from')) { $('mm_from').value = STATE.today.substring(0,8) + '01'; $('mm_to').value = STATE.today; }
 }
 
 function setupTabs(){
@@ -838,11 +787,9 @@ async function submitReport(status){
   const category = $('r_category').value;
   if (!date || !mentor || !branch || !category) return toast('Fill Date, Mentor, Branch, Category', 'err');
   if (!validateReportFields()) return;
-
   if (status === 'Final') {
     if (!confirm('⚠️ FINAL SUBMIT is permanent. You will NOT be able to edit after this. Continue?')) return;
   }
-
   const payload = {
     date: date, mentor: mentor, branch: branch, category: category,
     a_fmcr: $('r_a_FMCR').value, a_mcr: $('r_a_MCR').value,
@@ -853,7 +800,6 @@ async function submitReport(status){
     p_followup: $('r_p_Followup').value,
     status: status
   };
-
   const btnId = status === 'Final' ? 'btnFinalSubmit' : 'btnSaveDraft';
   btnBusy(btnId, status === 'Final' ? 'Submitting…' : 'Saving…');
   const r = unwrap(await api('saveReport', STATE.token, payload));
@@ -873,20 +819,17 @@ function resetReportForm(){
   toast('Form reset', 'ok');
 }
 
-/* ---------- MY REPORTS ---------- */
 async function loadMyReports(){
   const from = $('mr_from').value, to = $('mr_to').value;
   btnBusy('btnMrLoad', 'Loading…');
   const r = await api('getMyReports', STATE.token, from, to);
   btnDone('btnMrLoad');
   if (!r.ok) { $('myReportsResults').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
-
   const { assigned, pending } = r.data;
   if (!assigned.length && !pending.length) {
     $('myReportsResults').innerHTML = '<div class="empty">No reports found for this range.</div>';
     return;
   }
-
   let html = '';
   html += '<div class="section-title">📘 My Assigned Reports (' + assigned.length + ')</div>';
   html += tableGeneric(assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
@@ -917,7 +860,6 @@ function tableGeneric(rows, cols){
   return h;
 }
 
-/* ---------- LEAVE ---------- */
 async function submitLeave(){
   const from = $('l_from').value, to = $('l_to').value, reason = $('l_reason').value;
   if (!from || !to) return toast('Select dates', 'err');
@@ -940,7 +882,6 @@ async function loadLeaves(){
       <span class="muted">${esc(l.Reason || '')}</span></div>`).join('');
 }
 
-/* ---------- DASHBOARD ---------- */
 async function loadDashboard(){
   const filters = {
     from: $('d_from').value, to: $('d_to').value,
@@ -958,11 +899,13 @@ async function loadDashboard(){
 function renderDashboard(d, type){
   const tA = d.totals.assigned, tP = d.totals.pending;
   const statBox = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  const mcdBox = (v) => `<div class="stat mcd"><div class="k">Total MCD</div><div class="v">${v}</div></div>`;
   let html = '';
 
   if (type !== 'pending') {
     html += `<div class="section-title">📘 Assigned Totals (${tA.count} rows)</div><div class="stat-grid">`;
     ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += statBox(k, tA[k]));
+    html += mcdBox(tA.MCD);
     html += `</div>`;
     html += '<div class="section-title" style="margin-top:22px">📘 Assigned Details</div>';
     html += tableGeneric(d.assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
@@ -981,42 +924,36 @@ function renderDashboard(d, type){
   $('dash_results').innerHTML = html;
 }
 
-/* ---------- MONTHLY MCD (NEW) ---------- */
 async function loadMonthlyMCD(){
-  const ym = $('mm_month').value;
-  if (!ym) return toast('Select a month', 'err');
+  const from = $('mm_from').value, to = $('mm_to').value;
+  if (!from || !to) return toast('Select from and to dates', 'err');
   btnBusy('btnMmLoad', 'Loading…');
-  const r = await api('getMonthlyMCD', STATE.token, ym);
+  const r = await api('getMonthlyMCD', STATE.token, from, to);
   btnDone('btnMmLoad');
   if (!r.ok) { $('mm_results').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
   renderMonthlyMCD(r.data);
 }
 
 function renderMonthlyMCD(d){
-  const monthName = new Date(d.yearMonth + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
   let html = '';
-  html += `<div class="section-title" style="margin-top:0">${esc(monthName)}</div>`;
+  html += `<div class="section-title" style="margin-top:0">📅 ${esc(d.fromDate)} → ${esc(d.toDate)}</div>`;
   html += `<div class="stat-grid">
-    <div class="stat mcd"><div class="k">Total MCD (all mentors)</div><div class="v">${d.totalMCD}</div></div>
+    <div class="stat mcd"><div class="k">Total MCD</div><div class="v">${d.totalMCD}</div></div>
   </div>`;
-
   html += '<div class="section-title" style="margin-top:22px">Per Mentor Breakdown</div>';
   html += '<table><thead><tr><th>Mentor</th><th>MCD Total</th></tr></thead><tbody>';
   d.mentors.forEach(m => {
     html += `<tr><td>${esc(m)}</td><td><b>${d.perMentor[m] || 0}</b></td></tr>`;
   });
   html += '</tbody></table>';
-
   const daily = Object.entries(d.dailyMCD).sort((a,b) => a[0].localeCompare(b[0]));
   if (daily.length) {
     html += '<div class="section-title" style="margin-top:22px">Daily MCD</div>';
     html += '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>MCD</th></tr></thead><tbody>';
-    daily.forEach(([date, val]) => {
-      html += `<tr><td>${esc(date)}</td><td>${val}</td></tr>`;
-    });
+    daily.forEach(([date, val]) => { html += `<tr><td>${esc(date)}</td><td>${val}</td></tr>`; });
     html += '</tbody></table></div>';
   } else {
-    html += '<div class="empty" style="margin-top:22px">No MCD entries for this month.</div>';
+    html += '<div class="empty" style="margin-top:22px">No MCD entries for this range.</div>';
   }
   $('mm_results').innerHTML = html;
 }
@@ -1040,7 +977,6 @@ async function downloadCSV(type){
   URL.revokeObjectURL(url); toast('CSV downloaded', 'ok');
 }
 
-/* ---------- DAILY STATUS ---------- */
 async function loadDailyStatus(){
   const from = $('ds_from').value, to = $('ds_to').value;
   if (!from || !to) return toast('Select dates', 'err');
@@ -1049,11 +985,9 @@ async function loadDailyStatus(){
   btnDone('btnDsLoad');
   if (!r.ok) return toast(r.error, 'err');
   const d = r.data;
-
   let html = '<table style="font-size:12px"><thead><tr><th>Date</th>';
   d.mentors.forEach(m => html += '<th style="text-align:center">' + esc(m.split(' ')[0]) + '</th>');
   html += '</tr></thead><tbody>';
-
   d.dates.forEach(date => {
     const day = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short' });
     const isSunday = day === 'Sun';
@@ -1073,12 +1007,10 @@ async function loadDailyStatus(){
   $('dailyStatusResults').innerHTML = html;
 }
 
-/* ---------- ADMIN ---------- */
 async function renderAdminLists(){
   $('cat_list').innerHTML = STATE.categories.map(c =>
     `<span class="chip">${esc(c.Name)}<button onclick="removeCategory('${esc(c.Name)}')">✕</button></span>`
   ).join('') || '<span class="muted">No categories</span>';
-
   $('mentor_list').innerHTML = STATE.allMentors.map(m => {
     const inactive = (m.Active === false || String(m.Active).toLowerCase() === 'false');
     const codeSet = m.MentorCode ? '🔑' : '⚠️';
@@ -1090,7 +1022,6 @@ async function renderAdminLists(){
            <button style="color:#6d28d9" onclick="changeMentorCode('${esc(m.Email)}')">🔑</button>`}
     </span>`;
   }).join('') || '<span class="muted">No mentors</span>';
-
   $('branch_list').innerHTML = STATE.branches.map(b =>
     `<span class="chip">${esc(b.Name)}<button onclick="removeBranch('${esc(b.Name)}')">✕</button></span>`
   ).join('') || '<span class="muted">No branches</span>';
@@ -1146,7 +1077,6 @@ async function removeCategory(name){
   hideLoader(); if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); await refreshLists();
 }
-
 async function addMentor(){
   const name = $('new_m_name').value.trim();
   const email = $('new_m_email').value.trim().toLowerCase();
@@ -1191,7 +1121,6 @@ async function setAdminCode(){
   if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); $('new_admin_code').value = '';
 }
-
 async function addBranch(){
   const name = $('new_branch').value.trim(); if (!name) return toast('Enter name', 'err');
   btnBusy('btnAddBranch', 'Adding…');
@@ -1207,7 +1136,6 @@ async function removeBranch(name){
   hideLoader(); if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); await refreshLists();
 }
-
 async function refreshLists(){
   showLoader('Refreshing…');
   const r = unwrap(await api('getBootstrap', STATE.token));
@@ -1216,7 +1144,6 @@ async function refreshLists(){
   STATE.categories = r.data.categories; STATE.branches = r.data.branches;
   populateSelects(); renderAdminLists();
 }
-
 async function submitOverride(){
   const payload = {
     date: $('ov_date').value, mentor: $('ov_mentor').value,
@@ -1236,7 +1163,6 @@ async function submitOverride(){
   if (!r.ok) return toast(r.error, 'err');
   toast('Override: ' + r.data.message, 'ok');
 }
-
 async function unlockReport(){
   const date = $('ul_date').value, mentor = $('ul_mentor').value;
   const branch = $('ul_branch').value, category = $('ul_category').value;
@@ -1249,7 +1175,6 @@ async function unlockReport(){
   toast(r.data.message, 'ok');
 }
 
-/* ---------- INIT ---------- */
 (async function init(){
   const ping = await api('pingServer');
   console.log('[pingServer]', ping);
