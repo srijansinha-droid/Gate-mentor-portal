@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GATE Mentor Report Portal</title>
 <style>
-  :root{--brand:#6d28d9;--brand2:#8b5cf6;--ink:#1e1b4b;--muted:#6b7280;--ok:#16a34a;--err:#dc2626;--line:#e5e7eb;--radius:14px}
+  :root{--brand:#6d28d9;--brand2:#8b5cf6;--ink:#1e1b4b;--muted:#6b7280;--ok:#16a34a;--err:#dc2626;--warn:#ea580c;--line:#e5e7eb;--radius:14px}
   *{box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
   body{margin:0;background:linear-gradient(135deg,#eef2ff 0%,#f5f3ff 100%);color:var(--ink);min-height:100vh}
   .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
@@ -29,13 +29,14 @@
   .link:hover{text-decoration:underline}
   .note{background:#f5f3ff;border:1px dashed #c4b5fd;padding:10px 12px;border-radius:10px;font-size:12px;color:var(--brand);margin-top:16px}
   .note.warn{background:#fff7ed;border-color:#fed7aa;color:#c2410c}
+  .note.ok{background:#dcfce7;border-color:#86efac;color:#166534}
   .diag{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12px;padding:10px 12px;border-radius:10px;margin-top:16px;display:none;white-space:pre-wrap;font-family:monospace}
   .diag.show{display:block}
   header{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 26px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(109,40,217,.25);position:sticky;top:0;z-index:20}
   header h1{margin:0;font-size:18px}
   header .user{font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .badge{display:inline-block;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.25);font-size:11px;font-weight:700}
-  .logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px}
+  .logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;transition:.15s}
   .logout:hover{background:rgba(255,255,255,.28)}
   .tabs{display:flex;gap:6px;padding:14px 26px 0;flex-wrap:wrap}
   .tab{padding:10px 18px;border-radius:12px 12px 0 0;cursor:pointer;background:#fff;border:1px solid var(--line);border-bottom:none;font-weight:600;color:var(--muted);transition:.15s;user-select:none;font-size:14px}
@@ -43,18 +44,21 @@
   .panel{display:none;padding:22px 26px 40px}
   .panel.active{display:block;animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .card{background:#fff;border-radius:var(--radius);padding:22px;border:1px solid var(--line);box-shadow:0 4px 18px rgba(30,27,75,.05);max-width:1200px;margin:0 auto}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .card{background:#fff;border-radius:var(--radius);padding:22px;border:1px solid var(--line);box-shadow:0 4px 18px rgba(30,27,75,.05);max-width:1200px;margin:0 auto 16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
   label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
   input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin-top:6px;background:#fafafa;transition:.15s;outline:none;font-family:inherit}
   input:focus,select:focus,textarea:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+  input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#6b7280;cursor:not-allowed}
   .section-title{margin:18px 0 10px;font-size:13px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:1px}
   .btn{padding:11px 22px;border:none;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer;font-weight:600;font-size:14px;transition:.15s;display:inline-flex;align-items:center;justify-content:center}
-  .btn:hover{background:var(--brand2);transform:translateY(-1px);box-shadow:0 6px 14px rgba(139,92,246,.35)}
+  .btn:hover:not(:disabled){background:var(--brand2);transform:translateY(-1px);box-shadow:0 6px 14px rgba(139,92,246,.35)}
   .btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
-  .btn.ghost:hover{background:#f5f3ff;transform:none;box-shadow:none}
+  .btn.ghost:hover:not(:disabled){background:#f5f3ff;transform:none;box-shadow:none}
   .btn.danger{background:var(--err)}
-  .btn:disabled{opacity:.65;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.danger:hover:not(:disabled){background:#b91c1c}
+  .btn.warn{background:var(--warn)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
   .row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
   .stat{background:linear-gradient(135deg,#ede9fe,#f5f3ff);padding:14px;border-radius:12px;border:1px solid #ddd6fe}
@@ -64,12 +68,14 @@
   th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
   th{background:#f5f3ff;color:var(--brand);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
   tr:hover td{background:#faf5ff}
-  .toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-weight:600;z-index:999;opacity:0;transform:translateY(-10px);transition:.25s;font-size:14px;max-width:340px}
+  .toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-weight:600;z-index:9999;opacity:0;transform:translateY(-10px);transition:.25s;font-size:14px;max-width:340px}
   .toast.show{opacity:1;transform:none}
   .toast.ok{background:var(--ok)}
   .toast.err{background:var(--err)}
   .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;background:#ede9fe;color:var(--brand);font-size:12px;font-weight:600;margin:3px}
   .chip.inactive{background:#fee2e2;color:#b91c1c}
+  .chip.final{background:#dcfce7;color:#166534}
+  .chip.draft{background:#fef3c7;color:#92400e}
   .chip button{background:none;border:none;color:#dc2626;cursor:pointer;font-weight:900;font-size:14px}
   .muted{color:var(--muted);font-size:12px}
   .hidden{display:none!important}
@@ -80,6 +86,11 @@
   .step-dot{width:32px;height:6px;border-radius:3px;background:#e5e7eb;transition:.2s}
   .step-dot.active{background:var(--brand)}
   .step-dot.done{background:#16a34a}
+  .divider{height:1px;background:var(--line);margin:20px 0}
+  .status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .status-badge.draft{background:#fef3c7;color:#92400e}
+  .status-badge.final{background:#dcfce7;color:#166534}
+  .status-badge.locked{background:#fee2e2;color:#991b1b}
 </style>
 </head>
 <body>
@@ -89,20 +100,18 @@
   <div class="msg" id="loaderMsg">Please wait…</div>
 </div>
 
-<!-- ============ LOGIN — 3 STEP FLOW ============ -->
+<!-- ================= LOGIN SCREEN ================= -->
 <div class="login-wrap" id="loginScreen">
   <div class="login-card">
     <h1>🎓 GATE Mentor Report Portal</h1>
     <p class="sub">Secure login with OTP + Security Code</p>
 
-    <!-- Progress dots -->
     <div class="step-indicator">
       <div class="step-dot active" id="dot1"></div>
       <div class="step-dot" id="dot2"></div>
       <div class="step-dot" id="dot3"></div>
     </div>
 
-    <!-- STEP 1: Email -->
     <div id="stepEmail">
       <label>Step 1 — Email Address</label>
       <input type="email" id="login_email" placeholder="yourname@pw.live" autocomplete="email">
@@ -115,7 +124,6 @@
       <div class="diag" id="diagBox"></div>
     </div>
 
-    <!-- STEP 2: OTP -->
     <div id="stepOtp" class="hidden">
       <label>Step 2 — Enter 6-digit OTP</label>
       <div class="otp-row">
@@ -130,7 +138,6 @@
       <div class="note">OTP sent to <b id="otpSentTo"></b>. Valid for 5 minutes.</div>
     </div>
 
-    <!-- STEP 3: Security Code -->
     <div id="stepCode" class="hidden">
       <label>Step 3 — Security Code</label>
       <input type="password" id="login_code" placeholder="Enter your security code" autocomplete="off">
@@ -140,15 +147,15 @@
         </button>
       </div>
       <div class="note warn">
-        <b>For Mentors:</b> Enter the Security Code given by admin.<br>
-        <b>For Admin:</b> Enter the ADMIN_CODE.
+        <b>Mentors:</b> Enter the Security Code given by admin.<br>
+        <b>Admin:</b> Enter the ADMIN_CODE.
       </div>
       <a class="link" onclick="backToEmail()">← Start over</a>
     </div>
   </div>
 </div>
 
-<!-- ============ APP ============ -->
+<!-- ================= APP SCREEN ================= -->
 <div id="appScreen" class="hidden">
   <header>
     <h1>🎓 GATE Mentor Report Portal</h1>
@@ -160,66 +167,65 @@
   </header>
 
   <div class="tabs" id="tabs">
-    <div class="tab active" data-panel="assigned">📘 Assigned</div>
-    <div class="tab" data-panel="pending">⏳ Pending</div>
+    <div class="tab active" data-panel="report">📝 Daily Report</div>
     <div class="tab" data-panel="leave">🌴 Leave</div>
     <div class="tab" data-panel="dashboard">📊 Dashboard</div>
     <div class="tab hidden" data-panel="admin" id="adminTab">⚙️ Admin</div>
   </div>
 
-  <div class="panel active" id="panel-assigned">
+  <!-- ========== DAILY REPORT (Merged Assigned + Pending) ========== -->
+  <div class="panel active" id="panel-report">
     <div class="card">
-      <div class="lock-banner" id="lockAssigned"></div>
-      <h2 style="margin-top:0">Assigned Section</h2>
+      <h2 style="margin-top:0">📝 Daily Report</h2>
+      <div class="lock-banner" id="lockReport"></div>
+
       <div class="grid">
-        <div><label>Date</label><input type="date" id="a_date"></div>
-        <div><label>Mentor</label><select id="a_mentor"></select></div>
-        <div><label>Branch</label><select id="a_branch"></select></div>
-        <div><label>Category</label><select id="a_category"></select></div>
+        <div><label>Date</label><input type="date" id="r_date" onchange="loadExistingReport()"></div>
+        <div><label>Mentor</label><select id="r_mentor" onchange="loadExistingReport()"></select></div>
+        <div><label>Branch</label><select id="r_branch" onchange="loadExistingReport()"></select></div>
+        <div><label>Category</label><select id="r_category" onchange="loadExistingReport()"></select></div>
       </div>
-      <div class="section-title">Assigned Counts</div>
+
+      <div id="reportStatusBanner"></div>
+
+      <div class="divider"></div>
+
+      <div class="section-title" style="margin-top:0">📘 Assigned Counts</div>
       <div class="grid">
-        <div><label>FMCR</label><input type="number" min="0" value="0" id="a_FMCR"></div>
-        <div><label>MCR</label><input type="number" min="0" value="0" id="a_MCR"></div>
-        <div><label>DNP1</label><input type="number" min="0" value="0" id="a_DNP1"></div>
-        <div><label>DNP2</label><input type="number" min="0" value="0" id="a_DNP2"></div>
-        <div><label>DNP3</label><input type="number" min="0" value="0" id="a_DNP3"></div>
-        <div><label>Followup</label><input type="number" min="0" value="0" id="a_Followup"></div>
-        <div><label>MCD</label><input type="number" min="0" value="0" id="a_MCD"></div>
+        <div><label>FMCR</label><input type="number" min="0" value="0" id="r_a_FMCR"></div>
+        <div><label>MCR</label><input type="number" min="0" value="0" id="r_a_MCR"></div>
+        <div><label>DNP1</label><input type="number" min="0" value="0" id="r_a_DNP1"></div>
+        <div><label>DNP2</label><input type="number" min="0" value="0" id="r_a_DNP2"></div>
+        <div><label>DNP3</label><input type="number" min="0" value="0" id="r_a_DNP3"></div>
+        <div><label>Followup</label><input type="number" min="0" value="0" id="r_a_Followup"></div>
+        <div><label>MCD</label><input type="number" min="0" value="0" id="r_a_MCD"></div>
       </div>
-      <div class="row-flex" style="margin-top:20px">
-        <button class="btn" id="btnSubAssigned" onclick="submitForm('assigned')"><span class="lbl">✓ Submit Assigned</span></button>
-        <button class="btn ghost" onclick="resetForm('a')">Reset</button>
+
+      <div class="divider"></div>
+
+      <div class="section-title" style="margin-top:0">⏳ Pending Counts</div>
+      <div class="grid">
+        <div><label>FMCR</label><input type="number" min="0" value="0" id="r_p_FMCR"></div>
+        <div><label>MCR</label><input type="number" min="0" value="0" id="r_p_MCR"></div>
+        <div><label>DNP1</label><input type="number" min="0" value="0" id="r_p_DNP1"></div>
+        <div><label>DNP2</label><input type="number" min="0" value="0" id="r_p_DNP2"></div>
+        <div><label>DNP3</label><input type="number" min="0" value="0" id="r_p_DNP3"></div>
+        <div><label>Followup</label><input type="number" min="0" value="0" id="r_p_Followup"></div>
+      </div>
+
+      <div class="row-flex" style="margin-top:24px">
+        <button class="btn ghost" id="btnSaveDraft" onclick="submitReport('Draft')">
+          <span class="lbl">💾 Save Draft</span>
+        </button>
+        <button class="btn" id="btnFinalSubmit" onclick="submitReport('Final')">
+          <span class="lbl">🔒 Final Submit</span>
+        </button>
+        <button class="btn ghost" onclick="resetReportForm()">Reset</button>
       </div>
     </div>
   </div>
 
-  <div class="panel" id="panel-pending">
-    <div class="card">
-      <div class="lock-banner" id="lockPending"></div>
-      <h2 style="margin-top:0">Pending Section</h2>
-      <div class="grid">
-        <div><label>Date</label><input type="date" id="p_date"></div>
-        <div><label>Mentor</label><select id="p_mentor"></select></div>
-        <div><label>Branch</label><select id="p_branch"></select></div>
-        <div><label>Category</label><select id="p_category"></select></div>
-      </div>
-      <div class="section-title">Pending Counts</div>
-      <div class="grid">
-        <div><label>FMCR</label><input type="number" min="0" value="0" id="p_FMCR"></div>
-        <div><label>MCR</label><input type="number" min="0" value="0" id="p_MCR"></div>
-        <div><label>DNP1</label><input type="number" min="0" value="0" id="p_DNP1"></div>
-        <div><label>DNP2</label><input type="number" min="0" value="0" id="p_DNP2"></div>
-        <div><label>DNP3</label><input type="number" min="0" value="0" id="p_DNP3"></div>
-        <div><label>Followup</label><input type="number" min="0" value="0" id="p_Followup"></div>
-      </div>
-      <div class="row-flex" style="margin-top:20px">
-        <button class="btn" id="btnSubPending" onclick="submitForm('pending')"><span class="lbl">✓ Submit Pending</span></button>
-        <button class="btn ghost" onclick="resetForm('p')">Reset</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- ========== LEAVE ========== -->
   <div class="panel" id="panel-leave">
     <div class="card">
       <h2 style="margin-top:0">🌴 Apply for Leave</h2>
@@ -236,6 +242,7 @@
     </div>
   </div>
 
+  <!-- ========== DASHBOARD ========== -->
   <div class="panel" id="panel-dashboard">
     <div class="card">
       <h2 style="margin-top:0">📊 Dashboard</h2>
@@ -255,8 +262,29 @@
         <div class="empty"><span class="spinner dark"></span>Loading dashboard…</div>
       </div>
     </div>
+
+    <!-- ADMIN-ONLY: Daily Status Tracker -->
+    <div class="card hidden" id="dailyStatusCard" style="display:none">
+      <h3 style="margin-top:0">📅 Daily Submission Tracker</h3>
+      <p class="muted">See who submitted, who didn't — day by day.</p>
+      <div class="grid">
+        <div><label>From Date</label><input type="date" id="ds_from"></div>
+        <div><label>To Date</label><input type="date" id="ds_to"></div>
+      </div>
+      <div class="row-flex" style="margin-top:12px">
+        <button class="btn" id="btnDsLoad" onclick="loadDailyStatus()"><span class="lbl">📅 Load Tracker</span></button>
+      </div>
+      <div style="margin-top:14px;font-size:12px">
+        <span class="chip final">✅ Final</span>
+        <span class="chip draft">📝 Draft</span>
+        <span class="chip" style="background:#e0e7ff;color:#3730a3">🌴 Leave</span>
+        <span class="chip" style="background:#fee2e2;color:#b91c1c">❌ Missing</span>
+      </div>
+      <div id="dailyStatusResults" style="margin-top:16px; overflow-x:auto"></div>
+    </div>
   </div>
 
+  <!-- ========== ADMIN ========== -->
   <div class="panel" id="panel-admin">
     <div class="card">
       <h2 style="margin-top:0">⚙️ Admin Control Panel</h2>
@@ -284,36 +312,57 @@
       </div>
       <div id="branch_list" style="margin-top:12px"></div>
 
-      <div class="section-title" style="margin-top:26px">4. Admin Security Code</div>
-      <p class="muted">Change your admin code. Must be at least 6 characters.</p>
+      <div class="section-title" style="margin-top:26px">4. Change Admin Code</div>
+      <p class="muted">Update your admin login code (min 6 characters).</p>
       <div class="row-flex">
         <input id="new_admin_code" type="password" placeholder="New admin code" style="max-width:280px">
         <button class="btn" id="btnSetAdminCode" onclick="setAdminCode()"><span class="lbl">🔐 Update Admin Code</span></button>
       </div>
 
-      <div class="section-title" style="margin-top:26px">5. Admin Override — Missing Date Entry</div>
+      <div class="section-title" style="margin-top:26px">5. Override — Missing Date Entry</div>
       <p class="muted">Insert or update a report for any past date.</p>
       <div class="grid">
-        <div><label>Type</label>
-          <select id="ov_type"><option value="assigned">Assigned</option><option value="pending">Pending</option></select>
-        </div>
         <div><label>Date</label><input type="date" id="ov_date"></div>
         <div><label>Mentor</label><select id="ov_mentor"></select></div>
         <div><label>Branch</label><select id="ov_branch"></select></div>
         <div><label>Category</label><select id="ov_category"></select></div>
       </div>
-      <div class="section-title">Counts</div>
+
+      <div class="section-title">📘 Assigned Counts</div>
       <div class="grid">
-        <div><label>FMCR</label><input type="number" min="0" value="0" id="ov_FMCR"></div>
-        <div><label>MCR</label><input type="number" min="0" value="0" id="ov_MCR"></div>
-        <div><label>DNP1</label><input type="number" min="0" value="0" id="ov_DNP1"></div>
-        <div><label>DNP2</label><input type="number" min="0" value="0" id="ov_DNP2"></div>
-        <div><label>DNP3</label><input type="number" min="0" value="0" id="ov_DNP3"></div>
-        <div><label>Followup</label><input type="number" min="0" value="0" id="ov_Followup"></div>
-        <div><label>MCD</label><input type="number" min="0" value="0" id="ov_MCD"></div>
+        <div><label>FMCR</label><input type="number" min="0" value="0" id="ov_a_FMCR"></div>
+        <div><label>MCR</label><input type="number" min="0" value="0" id="ov_a_MCR"></div>
+        <div><label>DNP1</label><input type="number" min="0" value="0" id="ov_a_DNP1"></div>
+        <div><label>DNP2</label><input type="number" min="0" value="0" id="ov_a_DNP2"></div>
+        <div><label>DNP3</label><input type="number" min="0" value="0" id="ov_a_DNP3"></div>
+        <div><label>Followup</label><input type="number" min="0" value="0" id="ov_a_Followup"></div>
+        <div><label>MCD</label><input type="number" min="0" value="0" id="ov_a_MCD"></div>
       </div>
+
+      <div class="section-title">⏳ Pending Counts</div>
+      <div class="grid">
+        <div><label>FMCR</label><input type="number" min="0" value="0" id="ov_p_FMCR"></div>
+        <div><label>MCR</label><input type="number" min="0" value="0" id="ov_p_MCR"></div>
+        <div><label>DNP1</label><input type="number" min="0" value="0" id="ov_p_DNP1"></div>
+        <div><label>DNP2</label><input type="number" min="0" value="0" id="ov_p_DNP2"></div>
+        <div><label>DNP3</label><input type="number" min="0" value="0" id="ov_p_DNP3"></div>
+        <div><label>Followup</label><input type="number" min="0" value="0" id="ov_p_Followup"></div>
+      </div>
+
       <div class="row-flex" style="margin-top:16px">
         <button class="btn" id="btnOverride" onclick="submitOverride()"><span class="lbl">💾 Save Override</span></button>
+      </div>
+
+      <div class="section-title" style="margin-top:26px">6. Unlock a FINAL Report</div>
+      <p class="muted">If a mentor FINAL submitted by mistake, unlock it (set back to Draft).</p>
+      <div class="grid">
+        <div><label>Date</label><input type="date" id="ul_date"></div>
+        <div><label>Mentor</label><select id="ul_mentor"></select></div>
+        <div><label>Branch</label><select id="ul_branch"></select></div>
+        <div><label>Category</label><select id="ul_category"></select></div>
+      </div>
+      <div class="row-flex" style="margin-top:16px">
+        <button class="btn warn" id="btnUnlock" onclick="unlockReport()"><span class="lbl">🔓 Unlock Report</span></button>
       </div>
     </div>
   </div>
@@ -322,9 +371,18 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* =========================================================
+   ⚠️ PASTE YOUR APPS SCRIPT WEB APP URL BELOW ⚠️
+   ========================================================= */
 const DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbwRq0B2mac2EQB1i_rSKdhx_QB8ID8BgJJ0jgVYozIU-f9jSCtTw3T78F4ox96VYx4sGA/exec';
+/* ========================================================= */
 
-const STATE = { token:null, email:null, name:null, isAdmin:false, mentors:[], allMentors:[], categories:[], branches:[], today:null, pendingEmail:null, pendingOtp:null };
+const STATE = {
+  token:null, email:null, name:null, isAdmin:false,
+  mentors:[], allMentors:[], categories:[], branches:[],
+  today:null, pendingEmail:null, pendingOtp:null,
+  currentReportStatus:null
+};
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -351,6 +409,7 @@ function btnDone(id){
   btn.disabled = false;
 }
 
+/* ---------- API ---------- */
 async function api(fn, ...args){
   if (!DEPLOY_URL || DEPLOY_URL.includes('PASTE_YOUR')) {
     return { ok:false, error:'DEPLOY_URL not set.' };
@@ -393,7 +452,7 @@ async function checkServer(){
   return true;
 }
 
-/* ---------- LOGIN FLOW (3 steps) ---------- */
+/* ---------- LOGIN FLOW ---------- */
 function setStep(n){
   $('dot1').className = 'step-dot' + (n >= 1 ? (n > 1 ? ' done' : ' active') : '');
   $('dot2').className = 'step-dot' + (n >= 2 ? (n > 2 ? ' done' : ' active') : '');
@@ -416,10 +475,7 @@ async function sendOtp(isResend){
   const r = unwrap(await api('requestOtp', email));
   btnDone(btnId);
 
-  if (!r.ok) {
-    showDiag('❌ ' + r.error);
-    return toast(r.error, 'err');
-  }
+  if (!r.ok) { showDiag('❌ ' + r.error); return toast(r.error, 'err'); }
 
   STATE.pendingEmail = email;
   $('otpSentTo').textContent = email;
@@ -473,10 +529,20 @@ async function verifyLogin(){
 }
 
 async function doLogout(){
-  if (STATE.token) await api('logout', STATE.token);
-  clearToken(); location.reload();
+  if (!confirm('Are you sure you want to logout?')) return;
+  showLoader('Logging out…');
+  if (STATE.token) {
+    try { await api('logout', STATE.token); } catch(e){}
+  }
+  clearToken();
+  STATE.token = null;
+  STATE.email = null;
+  STATE.name = null;
+  STATE.isAdmin = false;
+  setTimeout(() => location.reload(), 300);
 }
 
+/* ---------- APP ENTRY ---------- */
 async function enterApp(){
   showLoader('Loading portal…');
   const r = unwrap(await api('getBootstrap', STATE.token));
@@ -486,18 +552,24 @@ async function enterApp(){
   STATE.mentors = d.mentors; STATE.allMentors = d.allMentors;
   STATE.categories = d.categories; STATE.branches = d.branches;
   STATE.today = d.today; STATE.name = d.myName; STATE.isAdmin = d.isAdmin;
+
   $('loginScreen').classList.add('hidden');
   $('appScreen').classList.remove('hidden');
   $('hdr_name').textContent = d.myName + ' • ' + d.email;
-  if (d.isAdmin) $('hdr_admin').classList.remove('hidden');
-  if (d.isAdmin) $('adminTab').classList.remove('hidden');
-
-  // ⚠️ Mentor: hide mentor filter dropdown (they can only see own data anyway)
+  if (d.isAdmin) {
+    $('hdr_admin').classList.remove('hidden');
+    $('adminTab').classList.remove('hidden');
+    const dsCard = $('dailyStatusCard');
+    if (dsCard) { dsCard.classList.remove('hidden'); dsCard.style.display = 'block'; }
+  }
   if (!d.isAdmin) $('d_mentor_wrap').style.display = 'none';
 
-  populateSelects(); setupTabs(); setupLockBanners();
+  populateSelects();
+  setupTabs();
+  setupLockBanners();
   if (d.isAdmin) renderAdminLists();
   loadLeaves();
+  loadExistingReport();
 }
 
 function populateSelects(){
@@ -505,15 +577,23 @@ function populateSelects(){
   const mentOpts = opts(STATE.mentors);
   const catOpts = opts(STATE.categories);
   const brOpts = opts(STATE.branches);
-  ['a_mentor','p_mentor','ov_mentor'].forEach(id => $(id).innerHTML = mentOpts || '');
-  ['a_category','p_category','ov_category'].forEach(id => $(id).innerHTML = catOpts || '');
-  ['a_branch','p_branch','ov_branch'].forEach(id => $(id).innerHTML = brOpts || '');
+
+  ['r_mentor','ov_mentor','ul_mentor'].forEach(id => { const el = $(id); if (el) el.innerHTML = mentOpts || ''; });
+  ['r_category','ov_category','ul_category'].forEach(id => { const el = $(id); if (el) el.innerHTML = catOpts || ''; });
+  ['r_branch','ov_branch','ul_branch'].forEach(id => { const el = $(id); if (el) el.innerHTML = brOpts || ''; });
+
   $('d_mentor').innerHTML = '<option value="">All</option>' + opts(STATE.allMentors);
   $('d_category').innerHTML = '<option value="">All</option>' + catOpts;
   $('d_branch').innerHTML = '<option value="">All</option>' + brOpts;
-  $('a_date').value = STATE.today; $('p_date').value = STATE.today;
-  $('ov_date').value = STATE.today; $('d_from').value = STATE.today; $('d_to').value = STATE.today;
+
+  $('r_date').value = STATE.today;
+  $('ov_date').value = STATE.today;
+  if ($('ul_date')) $('ul_date').value = STATE.today;
+  $('d_from').value = STATE.today;
+  $('d_to').value = STATE.today;
+  if ($('ds_from')) { $('ds_from').value = STATE.today; $('ds_to').value = STATE.today; }
 }
+
 function setupTabs(){
   document.querySelectorAll('#tabs .tab').forEach(t => {
     t.onclick = () => {
@@ -525,35 +605,110 @@ function setupTabs(){
     };
   });
 }
+
 function setupLockBanners(){
-  const msg = '🔒 Reports can only be submitted for <b>today (' + STATE.today + ')</b>.';
-  $('lockAssigned').innerHTML = msg; $('lockPending').innerHTML = msg;
+  const msg = '💾 <b>Save Draft</b> to work on it later · 🔒 <b>Final Submit</b> locks the report permanently.';
+  $('lockReport').innerHTML = msg;
 }
-async function submitForm(type){
-  const p = type === 'assigned' ? 'a_' : 'p_';
+
+/* ---------- REPORT: load existing / save draft / final submit ---------- */
+async function loadExistingReport(){
+  const date = $('r_date').value;
+  const mentor = $('r_mentor').value;
+  const branch = $('r_branch').value;
+  const category = $('r_category').value;
+  if (!date || !mentor || !branch || !category) return;
+
+  const banner = $('reportStatusBanner');
+  banner.innerHTML = '<div class="note" style="margin-top:14px"><span class="spinner dark"></span> Checking…</div>';
+
+  const r = await api('getTodayStatus', STATE.token, date, mentor, branch, category);
+  if (!r || !r.ok) { banner.innerHTML = ''; return; }
+
+  if (!r.data.exists) {
+    banner.innerHTML = '<div class="note" style="margin-top:14px">✨ New report — no draft yet. Fill and Save Draft or Final Submit.</div>';
+    STATE.currentReportStatus = null;
+    ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
+     'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
+      .forEach(k => { const el = $(k); if (el) el.value = 0; });
+    enableFormFields(true);
+    return;
+  }
+
+  const a = r.data.assigned || {};
+  const p = r.data.pending || {};
+  $('r_a_FMCR').value = a.FMCR || 0;
+  $('r_a_MCR').value = a.MCR || 0;
+  $('r_a_DNP1').value = a.DNP1 || 0;
+  $('r_a_DNP2').value = a.DNP2 || 0;
+  $('r_a_DNP3').value = a.DNP3 || 0;
+  $('r_a_Followup').value = a.Followup || 0;
+  $('r_a_MCD').value = a.MCD || 0;
+  $('r_p_FMCR').value = p.FMCR || 0;
+  $('r_p_MCR').value = p.MCR || 0;
+  $('r_p_DNP1').value = p.DNP1 || 0;
+  $('r_p_DNP2').value = p.DNP2 || 0;
+  $('r_p_DNP3').value = p.DNP3 || 0;
+  $('r_p_Followup').value = p.Followup || 0;
+
+  if (r.data.status === 'Final') {
+    STATE.currentReportStatus = 'Final';
+    banner.innerHTML = '<div class="note warn" style="margin-top:14px">🔒 <b>Final Submitted</b> — This report is locked. Contact admin to unlock.</div>';
+    enableFormFields(false);
+  } else {
+    STATE.currentReportStatus = 'Draft';
+    banner.innerHTML = '<div class="note" style="margin-top:14px">📝 <b>Draft saved</b> — You can edit and Final Submit anytime.</div>';
+    enableFormFields(true);
+  }
+}
+
+function enableFormFields(enabled){
+  const ids = ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
+                'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup'];
+  ids.forEach(id => { const el = $(id); if (el) el.disabled = !enabled; });
+  $('btnSaveDraft').disabled = !enabled;
+  $('btnFinalSubmit').disabled = !enabled;
+}
+
+async function submitReport(status){
+  const date = $('r_date').value;
+  const mentor = $('r_mentor').value;
+  const branch = $('r_branch').value;
+  const category = $('r_category').value;
+  if (!date || !mentor || !branch || !category) return toast('Fill Date, Mentor, Branch, Category', 'err');
+
+  if (status === 'Final') {
+    if (!confirm('⚠️ FINAL SUBMIT is permanent. You will NOT be able to edit after this. Continue?')) return;
+  }
+
   const payload = {
-    date: $(p+'date').value, mentor: $(p+'mentor').value,
-    branch: $(p+'branch').value, category: $(p+'category').value,
-    fmcr: $(p+'FMCR').value, mcr: $(p+'MCR').value,
-    dnp1: $(p+'DNP1').value, dnp2: $(p+'DNP2').value, dnp3: $(p+'DNP3').value,
-    followup: $(p+'Followup').value,
-    mcd: type === 'assigned' ? $(p+'MCD').value : 0
+    date: date, mentor: mentor, branch: branch, category: category,
+    a_fmcr: $('r_a_FMCR').value, a_mcr: $('r_a_MCR').value,
+    a_dnp1: $('r_a_DNP1').value, a_dnp2: $('r_a_DNP2').value, a_dnp3: $('r_a_DNP3').value,
+    a_followup: $('r_a_Followup').value, a_mcd: $('r_a_MCD').value,
+    p_fmcr: $('r_p_FMCR').value, p_mcr: $('r_p_MCR').value,
+    p_dnp1: $('r_p_DNP1').value, p_dnp2: $('r_p_DNP2').value, p_dnp3: $('r_p_DNP3').value,
+    p_followup: $('r_p_Followup').value,
+    status: status
   };
-  if (!payload.date || !payload.mentor || !payload.branch || !payload.category)
-    return toast('Fill all required fields', 'err');
-  const btnId = type === 'assigned' ? 'btnSubAssigned' : 'btnSubPending';
-  btnBusy(btnId, 'Submitting…');
-  const r = unwrap(await api('submitReport', STATE.token, type, payload));
+
+  const btnId = status === 'Final' ? 'btnFinalSubmit' : 'btnSaveDraft';
+  btnBusy(btnId, status === 'Final' ? 'Submitting…' : 'Saving…');
+  const r = unwrap(await api('saveReport', STATE.token, payload));
   btnDone(btnId);
   if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok');
+  loadExistingReport();
 }
-function resetForm(prefix){
-  ['FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD'].forEach(k => {
-    const el = $(prefix+'_'+k); if (el) el.value = 0;
-  });
-  $(prefix+'_date').value = STATE.today;
+
+function resetReportForm(){
+  ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
+   'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
+    .forEach(k => { const el = $(k); if (el) el.value = 0; });
+  $('r_date').value = STATE.today;
 }
+
+/* ---------- LEAVE ---------- */
 async function submitLeave(){
   const from = $('l_from').value, to = $('l_to').value, reason = $('l_reason').value;
   if (!from || !to) return toast('Select dates', 'err');
@@ -563,6 +718,7 @@ async function submitLeave(){
   if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); $('l_reason').value = ''; loadLeaves();
 }
+
 async function loadLeaves(){
   $('leave_list').innerHTML = '<div class="empty"><span class="spinner dark"></span>Loading…</div>';
   const r = unwrap(await api('getLeaves', STATE.token));
@@ -574,8 +730,13 @@ async function loadLeaves(){
       <span><b>${esc(l.Mentor)}</b> — ${esc(l.FromDate)} → ${esc(l.ToDate)}</span>
       <span class="muted">${esc(l.Reason || '')}</span></div>`).join('');
 }
+
+/* ---------- DASHBOARD ---------- */
 async function loadDashboard(){
-  const filters = { from: $('d_from').value, to: $('d_to').value, mentor: $('d_mentor').value, branch: $('d_branch').value, category: $('d_category').value };
+  const filters = {
+    from: $('d_from').value, to: $('d_to').value,
+    mentor: $('d_mentor').value, branch: $('d_branch').value, category: $('d_category').value
+  };
   $('dash_results').innerHTML = '<div class="empty"><span class="spinner dark"></span>Fetching…</div>';
   btnBusy('btnFetch', 'Fetching…');
   const r = unwrap(await api('getDashboard', STATE.token, filters));
@@ -583,46 +744,64 @@ async function loadDashboard(){
   if (!r.ok) { $('dash_results').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
   renderDashboard(r.data);
 }
+
 function renderDashboard(d){
   const tA = d.totals.assigned, tP = d.totals.pending;
   const statBox = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
   let html = '';
-  html += `<div class="section-title">Assigned Totals (${tA.count} rows)</div><div class="stat-grid">`;
+  html += `<div class="section-title">📘 Assigned Totals (${tA.count} rows)</div><div class="stat-grid">`;
   ['FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD'].forEach(k => html += statBox(k, tA[k]));
   html += `</div>`;
-  html += `<div class="section-title" style="margin-top:22px">Pending Totals (${tP.count} rows)</div><div class="stat-grid">`;
+  html += `<div class="section-title" style="margin-top:22px">⏳ Pending Totals (${tP.count} rows)</div><div class="stat-grid">`;
   ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += statBox(k, tP[k]));
   html += `</div>`;
-  html += '<div class="section-title" style="margin-top:22px">Assigned Details</div>';
+  html += '<div class="section-title" style="margin-top:22px">📘 Assigned Details</div>';
   html += table(d.assigned, 'assigned');
-  html += '<div class="section-title" style="margin-top:22px">Pending Details</div>';
+  html += '<div class="section-title" style="margin-top:22px">⏳ Pending Details</div>';
   html += table(d.pending, 'pending');
   if (d.leaves && d.leaves.length) {
-    html += '<div class="section-title" style="margin-top:22px">🌴 Leaves</div>';
+    html += '<div class="section-title" style="margin-top:22px">🌴 Leaves in range</div>';
     html += '<div>' + d.leaves.map(l => `<span class="chip">${esc(l.Mentor)}: ${esc(l.FromDate)} → ${esc(l.ToDate)}</span>`).join('') + '</div>';
   }
   $('dash_results').innerHTML = html;
 }
+
 function table(rows, type){
   if (!rows.length) return '<div class="empty">No records.</div>';
   let h = '<div style="overflow-x:auto"><table><thead><tr>';
-  const cols = ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD'];
+  const isPending = type === 'pending';
+  const cols = isPending
+    ? ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']
+    : ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status'];
   if (STATE.isAdmin) cols.push('Action');
   cols.forEach(c => h += '<th>' + c + '</th>');
   h += '</tr></thead><tbody>';
   rows.forEach(r => {
     h += '<tr>';
-    ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD'].forEach(k => h += '<td>' + esc(r[k]) + '</td>');
+    cols.forEach(k => {
+      if (k === 'Action') return;
+      if (k === 'Status') {
+        const cls = r.Status === 'Final' ? 'final' : 'draft';
+        h += `<td><span class="status-badge ${cls}">${esc(r.Status || 'Draft')}</span></td>`;
+      } else {
+        h += '<td>' + esc(r[k]) + '</td>';
+      }
+    });
     if (STATE.isAdmin) {
-      h += `<td><button class="btn danger" style="padding:5px 10px;font-size:11px" onclick="deleteRow('${type}','${esc(r.Date)}','${esc(r.Mentor)}','${esc(r.Branch)}','${esc(r.Category)}')">Delete</button></td>`;
+      h += `<td><button class="btn danger" style="padding:5px 10px;font-size:11px"
+        onclick="deleteRow('${type}','${esc(r.Date)}','${esc(r.Mentor)}','${esc(r.Branch)}','${esc(r.Category)}')">Delete</button></td>`;
     }
     h += '</tr>';
   });
   h += '</tbody></table></div>';
   return h;
 }
+
 async function downloadCSV(type){
-  const filters = { from: $('d_from').value, to: $('d_to').value, mentor: $('d_mentor').value, branch: $('d_branch').value, category: $('d_category').value };
+  const filters = {
+    from: $('d_from').value, to: $('d_to').value,
+    mentor: $('d_mentor').value, branch: $('d_branch').value, category: $('d_category').value
+  };
   const btnId = type === 'assigned' ? 'btnCsvA' : 'btnCsvP';
   btnBusy(btnId, 'Exporting…');
   const csv = await api('exportCSV', STATE.token, filters, type);
@@ -636,16 +815,55 @@ async function downloadCSV(type){
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url); toast('CSV downloaded', 'ok');
 }
+
 async function deleteRow(type, date, mentor, branch, category){
-  if (!confirm(`Delete this row?`)) return;
+  if (!confirm(`Delete this row?\n${date} · ${mentor} · ${branch} · ${category}`)) return;
   showLoader('Deleting…');
   const r = unwrap(await api('adminDeleteRow', STATE.token, type, date, mentor, branch, category));
   hideLoader();
   if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); loadDashboard();
 }
+
+/* ---------- DAILY STATUS TRACKER (Admin only) ---------- */
+async function loadDailyStatus(){
+  const from = $('ds_from').value, to = $('ds_to').value;
+  if (!from || !to) return toast('Select dates', 'err');
+  btnBusy('btnDsLoad', 'Loading…');
+  const r = await api('getDailyStatus', STATE.token, from, to);
+  btnDone('btnDsLoad');
+  if (!r.ok) return toast(r.error, 'err');
+  const d = r.data;
+
+  let html = '<table style="font-size:12px"><thead><tr><th>Date</th>';
+  d.mentors.forEach(m => html += '<th style="text-align:center">' + esc(m.split(' ')[0]) + '</th>');
+  html += '</tr></thead><tbody>';
+
+  d.dates.forEach(date => {
+    const day = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short' });
+    const isSunday = day === 'Sun';
+    html += `<tr><td><b>${esc(date)}</b> <span class="muted">(${day})</span>${isSunday?' 🌞':''}</td>`;
+    d.mentors.forEach(m => {
+      const st = d.matrix[date][m];
+      let icon = '', bg = '';
+      if (st === 'Final') { icon = '✅'; bg = '#dcfce7'; }
+      else if (st === 'Draft') { icon = '📝'; bg = '#fef3c7'; }
+      else if (st === 'Leave') { icon = '🌴'; bg = '#e0e7ff'; }
+      else { icon = '❌'; bg = '#fee2e2'; }
+      html += `<td style="background:${bg};text-align:center;font-size:16px">${icon}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  $('dailyStatusResults').innerHTML = html;
+}
+
+/* ---------- ADMIN ---------- */
 async function renderAdminLists(){
-  $('cat_list').innerHTML = STATE.categories.map(c => `<span class="chip">${esc(c.Name)}<button onclick="removeCategory('${esc(c.Name)}')">✕</button></span>`).join('') || '<span class="muted">No categories</span>';
+  $('cat_list').innerHTML = STATE.categories.map(c =>
+    `<span class="chip">${esc(c.Name)}<button onclick="removeCategory('${esc(c.Name)}')">✕</button></span>`
+  ).join('') || '<span class="muted">No categories</span>';
+
   $('mentor_list').innerHTML = STATE.allMentors.map(m => {
     const inactive = (m.Active === false || String(m.Active).toLowerCase() === 'false');
     const codeSet = m.MentorCode ? '🔑' : '⚠️';
@@ -657,8 +875,12 @@ async function renderAdminLists(){
            <button style="color:#6d28d9" onclick="changeMentorCode('${esc(m.Email)}')">🔑</button>`}
     </span>`;
   }).join('') || '<span class="muted">No mentors</span>';
-  $('branch_list').innerHTML = STATE.branches.map(b => `<span class="chip">${esc(b.Name)}<button onclick="removeBranch('${esc(b.Name)}')">✕</button></span>`).join('') || '<span class="muted">No branches</span>';
+
+  $('branch_list').innerHTML = STATE.branches.map(b =>
+    `<span class="chip">${esc(b.Name)}<button onclick="removeBranch('${esc(b.Name)}')">✕</button></span>`
+  ).join('') || '<span class="muted">No branches</span>';
 }
+
 async function addCategory(){
   const name = $('new_cat').value.trim(); if (!name) return toast('Enter name', 'err');
   btnBusy('btnAddCat', 'Adding…');
@@ -674,6 +896,7 @@ async function removeCategory(name){
   hideLoader(); if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); await refreshLists();
 }
+
 async function addMentor(){
   const name = $('new_m_name').value.trim();
   const email = $('new_m_email').value.trim().toLowerCase();
@@ -702,7 +925,7 @@ async function restoreMentor(email){
 }
 async function changeMentorCode(email){
   const code = prompt('Enter new Security Code for ' + email + ':');
-  if (!code) return;
+  if (!code || !code.trim()) return;
   showLoader('Updating…');
   const r = unwrap(await api('adminSetMentorCode', STATE.token, email, code.trim()));
   hideLoader(); if (!r.ok) return toast(r.error, 'err');
@@ -718,6 +941,7 @@ async function setAdminCode(){
   if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); $('new_admin_code').value = '';
 }
+
 async function addBranch(){
   const name = $('new_branch').value.trim(); if (!name) return toast('Enter name', 'err');
   btnBusy('btnAddBranch', 'Adding…');
@@ -733,6 +957,7 @@ async function removeBranch(name){
   hideLoader(); if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok'); await refreshLists();
 }
+
 async function refreshLists(){
   showLoader('Refreshing…');
   const r = unwrap(await api('getBootstrap', STATE.token));
@@ -741,23 +966,40 @@ async function refreshLists(){
   STATE.categories = r.data.categories; STATE.branches = r.data.branches;
   populateSelects(); renderAdminLists();
 }
+
 async function submitOverride(){
-  const type = $('ov_type').value;
   const payload = {
     date: $('ov_date').value, mentor: $('ov_mentor').value,
     branch: $('ov_branch').value, category: $('ov_category').value,
-    fmcr: $('ov_FMCR').value, mcr: $('ov_MCR').value,
-    dnp1: $('ov_DNP1').value, dnp2: $('ov_DNP2').value, dnp3: $('ov_DNP3').value,
-    followup: $('ov_Followup').value, mcd: $('ov_MCD').value, override: true
+    a_fmcr: $('ov_a_FMCR').value, a_mcr: $('ov_a_MCR').value,
+    a_dnp1: $('ov_a_DNP1').value, a_dnp2: $('ov_a_DNP2').value, a_dnp3: $('ov_a_DNP3').value,
+    a_followup: $('ov_a_Followup').value, a_mcd: $('ov_a_MCD').value,
+    p_fmcr: $('ov_p_FMCR').value, p_mcr: $('ov_p_MCR').value,
+    p_dnp1: $('ov_p_DNP1').value, p_dnp2: $('ov_p_DNP2').value, p_dnp3: $('ov_p_DNP3').value,
+    p_followup: $('ov_p_Followup').value,
+    status: 'Final', override: true
   };
   if (!payload.date || !payload.mentor || !payload.branch || !payload.category) return toast('Fill all', 'err');
   btnBusy('btnOverride', 'Saving…');
-  const r = unwrap(await api('submitReport', STATE.token, type, payload));
+  const r = unwrap(await api('saveReport', STATE.token, payload));
   btnDone('btnOverride');
   if (!r.ok) return toast(r.error, 'err');
   toast('Override: ' + r.data.message, 'ok');
 }
 
+async function unlockReport(){
+  const date = $('ul_date').value, mentor = $('ul_mentor').value;
+  const branch = $('ul_branch').value, category = $('ul_category').value;
+  if (!date || !mentor || !branch || !category) return toast('Fill all fields', 'err');
+  if (!confirm(`Unlock report for ${mentor} on ${date}?`)) return;
+  btnBusy('btnUnlock', 'Unlocking…');
+  const r = unwrap(await api('adminUnlockReport', STATE.token, date, mentor, branch, category));
+  btnDone('btnUnlock');
+  if (!r.ok) return toast(r.error, 'err');
+  toast(r.data.message, 'ok');
+}
+
+/* ---------- INIT ---------- */
 (async function init(){
   const ping = await api('pingServer');
   console.log('[pingServer]', ping);
