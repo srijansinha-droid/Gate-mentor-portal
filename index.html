@@ -5,142 +5,126 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GATE Mentor Report Portal</title>
 <style>
-  :root{--brand:#6d28d9;--brand2:#8b5cf6;--ink:#1e1b4b;--muted:#6b7280;--ok:#16a34a;--err:#dc2626;--warn:#ea580c;--line:#e5e7eb;--radius:14px}
-  *{box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
-  body{margin:0;background:linear-gradient(135deg,#eef2ff 0%,#f5f3ff 100%);color:var(--ink);min-height:100vh}
-  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
-  .spinner.dark{border-color:rgba(109,40,217,.25);border-top-color:var(--brand)}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .overlay{position:fixed;inset:0;background:rgba(245,243,255,.9);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
-  .overlay.show{display:flex}
-  .overlay .msg{color:var(--brand);font-weight:700;font-size:15px}
-  .overlay .ring{width:60px;height:60px;border:5px solid #ddd6fe;border-top-color:var(--brand);border-radius:50%;animation:spin .9s linear infinite}
-  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-  .login-card{background:#fff;padding:38px 34px;border-radius:20px;width:100%;max-width:420px;box-shadow:0 18px 50px rgba(109,40,217,.20);border:1px solid #ede9fe;animation:pop .35s ease}
-  @keyframes pop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
-  .login-card h1{margin:0 0 4px;font-size:22px;background:linear-gradient(90deg,var(--brand),var(--brand2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .login-card p.sub{margin:0 0 26px;color:var(--muted);font-size:13px}
-  .login-card label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-top:14px}
-  .login-card input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:15px;margin-top:6px;background:#fafafa;outline:none;transition:.15s}
-  .login-card input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
-  .otp-row{display:flex;gap:10px;margin-top:6px}
-  .otp-row input{flex:1;letter-spacing:6px;font-size:20px;text-align:center;font-weight:700}
-  .link{color:var(--brand);font-size:13px;font-weight:600;cursor:pointer;margin-top:14px;display:inline-block}
-  .link:hover{text-decoration:underline}
-  .note{background:#f5f3ff;border:1px dashed #c4b5fd;padding:10px 12px;border-radius:10px;font-size:12px;color:var(--brand);margin-top:16px}
-  .note.warn{background:#fff7ed;border-color:#fed7aa;color:#c2410c}
-  .note.ok{background:#dcfce7;border-color:#86efac;color:#166534}
-  .diag{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12px;padding:10px 12px;border-radius:10px;margin-top:16px;display:none;white-space:pre-wrap;font-family:monospace}
-  .diag.show{display:block}
-  
-  /* 🔥 FIX: Header & Logout Button */
-  header{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 26px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(109,40,217,.25);position:sticky;top:0;z-index:999}
-  header h1{margin:0;font-size:18px;pointer-events:none}
-  header .user{font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;z-index:1000;position:relative}
-  .badge{display:inline-block;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.25);font-size:11px;font-weight:700;pointer-events:none}
-  .logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;transition:.15s;position:relative;z-index:1001;pointer-events:auto}
-  .logout:hover{background:rgba(255,255,255,.35);transform:translateY(-1px)}
-  
-  .tabs{display:flex;gap:6px;padding:14px 26px 0;flex-wrap:wrap}
-  .tab{padding:10px 18px;border-radius:12px 12px 0 0;cursor:pointer;background:#fff;border:1px solid var(--line);border-bottom:none;font-weight:600;color:var(--muted);transition:.15s;user-select:none;font-size:14px}
-  .tab.active{background:var(--brand);color:#fff;box-shadow:0 -2px 10px rgba(109,40,217,.25)}
-  .panel{display:none;padding:22px 26px 40px}
-  .panel.active{display:block;animation:fade .25s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .card{background:#fff;border-radius:var(--radius);padding:22px;border:1px solid var(--line);box-shadow:0 4px 18px rgba(30,27,75,.05);max-width:1300px;margin:0 auto 16px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-  label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin-top:6px;background:#fafafa;transition:.15s;outline:none;font-family:inherit}
-  input:focus,select:focus,textarea:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
-  input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#6b7280;cursor:not-allowed}
-  input.err{border-color:#dc2626;background:#fef2f2}
-  .section-title{margin:18px 0 10px;font-size:13px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:1px}
-  .btn{padding:11px 22px;border:none;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer;font-weight:600;font-size:14px;transition:.15s;display:inline-flex;align-items:center;justify-content:center}
-  .btn:hover:not(:disabled){background:var(--brand2);transform:translateY(-1px);box-shadow:0 6px 14px rgba(139,92,246,.35)}
-  .btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
-  .btn.ghost:hover:not(:disabled){background:#f5f3ff;transform:none;box-shadow:none}
-  .btn.danger{background:var(--err)}
-  .btn.warn{background:var(--warn)}
-  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
-  .row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
-  .stat{background:linear-gradient(135deg,#ede9fe,#f5f3ff);padding:14px;border-radius:12px;border:1px solid #ddd6fe}
-  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
-  .stat .v{font-size:22px;font-weight:800;color:var(--brand);margin-top:4px}
-  .stat.mcd{background:linear-gradient(135deg,#fef3c7,#fffbeb);border-color:#fcd34d}
-  .stat.mcd .v{color:#92400e}
-  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
-  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
-  th{background:#f5f3ff;color:var(--brand);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
-  tr:hover td{background:#faf5ff}
-  .toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-weight:600;z-index:10000;opacity:0;transform:translateY(-10px);transition:.25s;font-size:14px;max-width:340px}
-  .toast.show{opacity:1;transform:none}
-  .toast.ok{background:var(--ok)}
-  .toast.err{background:var(--err)}
-  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;background:#ede9fe;color:var(--brand);font-size:12px;font-weight:600;margin:3px}
-  .chip.inactive{background:#fee2e2;color:#b91c1c}
-  .chip.final{background:#dcfce7;color:#166534}
-  .chip.draft{background:#fef3c7;color:#92400e}
-  .chip button{background:none;border:none;color:#dc2626;cursor:pointer;font-weight:900;font-size:14px}
-  .muted{color:var(--muted);font-size:12px}
-  .hidden{display:none!important}
-  .lock-banner{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:14px}
-  .empty{text-align:center;padding:40px 20px;color:var(--muted)}
-  .empty .spinner{display:block;margin:0 auto 10px}
-  .step-indicator{display:flex;gap:6px;margin-bottom:20px;justify-content:center}
-  .step-dot{width:32px;height:6px;border-radius:3px;background:#e5e7eb;transition:.2s}
-  .step-dot.active{background:var(--brand)}
-  .step-dot.done{background:#16a34a}
-  .divider{height:1px;background:var(--line);margin:20px 0}
-  .status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
-  .status-badge.draft{background:#fef3c7;color:#92400e}
-  .status-badge.final{background:#dcfce7;color:#166534}
-  .status-badge.leave{background:#e0e7ff;color:#3730a3}
+:root{--brand:#6d28d9;--brand2:#8b5cf6;--ink:#1e1b4b;--muted:#6b7280;--ok:#16a34a;--err:#dc2626;--warn:#ea580c;--line:#e5e7eb;--radius:14px}
+*{box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
+body{margin:0;background:linear-gradient(135deg,#eef2ff,#f5f3ff);color:var(--ink);min-height:100vh}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+.spinner.dark{border-color:rgba(109,40,217,.25);border-top-color:var(--brand)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.overlay{position:fixed;inset:0;background:rgba(245,243,255,.9);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.overlay.show{display:flex}
+.overlay .msg{color:var(--brand);font-weight:700;font-size:15px}
+.overlay .ring{width:60px;height:60px;border:5px solid #ddd6fe;border-top-color:var(--brand);border-radius:50%;animation:spin .9s linear infinite}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;padding:38px 34px;border-radius:20px;width:100%;max-width:420px;box-shadow:0 18px 50px rgba(109,40,217,.2);border:1px solid #ede9fe;animation:pop .35s ease}
+.login-card h1{margin:0 0 4px;font-size:22px;background:linear-gradient(90deg,var(--brand),var(--brand2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-card p.sub{margin:0 0 26px;color:var(--muted);font-size:13px}
+.login-card label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-top:14px}
+.login-card input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:15px;margin-top:6px;background:#fafafa;outline:none}
+.login-card input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.otp-row{display:flex;gap:10px;margin-top:6px}
+.otp-row input{flex:1;letter-spacing:6px;font-size:20px;text-align:center;font-weight:700}
+.link{color:var(--brand);font-size:13px;font-weight:600;cursor:pointer;margin-top:14px;display:inline-block}
+.link:hover{text-decoration:underline}
+.note{background:#f5f3ff;border:1px dashed #c4b5fd;padding:10px 12px;border-radius:10px;font-size:12px;color:var(--brand);margin-top:16px}
+.note.warn{background:#fff7ed;border-color:#fed7aa;color:#c2410c}
+.note.ok{background:#dcfce7;border-color:#86efac;color:#166534}
+.diag{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12px;padding:10px 12px;border-radius:10px;margin-top:16px;display:none;white-space:pre-wrap;font-family:monospace}
+.diag.show{display:block}
+header{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 26px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(109,40,217,.25);position:sticky;top:0;z-index:999}
+header h1{margin:0;font-size:18px}
+header .user{font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.25);font-size:11px;font-weight:700}
+.logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px}
+.logout:hover{background:rgba(255,255,255,.35)}
+.tabs{display:flex;gap:6px;padding:14px 26px 0;flex-wrap:wrap}
+.tab{padding:10px 18px;border-radius:12px 12px 0 0;cursor:pointer;background:#fff;border:1px solid var(--line);border-bottom:none;font-weight:600;color:var(--muted);user-select:none;font-size:14px}
+.tab.active{background:var(--brand);color:#fff;box-shadow:0 -2px 10px rgba(109,40,217,.25)}
+.panel{display:none;padding:22px 26px 40px}
+.panel.active{display:block;animation:fade .25s ease}
+.card{background:#fff;border-radius:var(--radius);padding:22px;border:1px solid var(--line);box-shadow:0 4px 18px rgba(30,27,75,.05);max-width:1300px;margin:0 auto 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;margin-top:6px;background:#fafafa;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#6b7280;cursor:not-allowed}
+input.err{border-color:#dc2626;background:#fef2f2}
+.section-title{margin:18px 0 10px;font-size:13px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:1px}
+.btn{padding:11px 22px;border:none;border-radius:10px;background:var(--brand);color:#fff;cursor:pointer;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center}
+.btn:hover:not(:disabled){background:var(--brand2);box-shadow:0 6px 14px rgba(139,92,246,.35)}
+.btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.btn.ghost:hover:not(:disabled){background:#f5f3ff;box-shadow:none}
+.btn.warn{background:var(--warn)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.row-flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.stat{background:linear-gradient(135deg,#ede9fe,#f5f3ff);padding:14px;border-radius:12px;border:1px solid #ddd6fe}
+.stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.stat .v{font-size:22px;font-weight:800;color:var(--brand);margin-top:4px}
+.stat.mcd{background:linear-gradient(135deg,#fef3c7,#fffbeb);border-color:#fcd34d}
+.stat.mcd .v{color:#92400e}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:#f5f3ff;color:var(--brand);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+tr:hover td{background:#faf5ff}
+/* toast must NEVER block clicks (this was the logout bug) */
+.toast{pointer-events:none;position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-weight:600;z-index:10000;opacity:0;transform:translateY(-10px);transition:.25s;font-size:14px;max-width:340px}
+.toast.show{opacity:1;transform:none}
+.toast.ok{background:var(--ok)}
+.toast.err{background:var(--err)}
+.modal{position:fixed;inset:0;background:rgba(30,27,75,.5);display:none;align-items:center;justify-content:center;z-index:10001;padding:20px}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:18px;padding:30px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .25s ease}
+.modal .box h3{margin:0 0 10px;color:#166534;font-size:20px}
+.modal .box p{margin:0 0 18px;color:#374151;font-size:14px;line-height:1.5;white-space:pre-line}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;background:#ede9fe;color:var(--brand);font-size:12px;font-weight:600;margin:3px}
+.chip.inactive{background:#fee2e2;color:#b91c1c}
+.chip.final{background:#dcfce7;color:#166534}
+.chip.draft{background:#fef3c7;color:#92400e}
+.chip button{background:none;border:none;color:#dc2626;cursor:pointer;font-weight:900;font-size:14px}
+.muted{color:var(--muted);font-size:12px}
+.hidden{display:none!important}
+.lock-banner{background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:14px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .spinner{display:block;margin:0 auto 10px}
+.step-indicator{display:flex;gap:6px;margin-bottom:20px;justify-content:center}
+.step-dot{width:32px;height:6px;border-radius:3px;background:#e5e7eb}
+.step-dot.active{background:var(--brand)}
+.step-dot.done{background:#16a34a}
+.divider{height:1px;background:var(--line);margin:20px 0}
+.status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.status-badge.draft{background:#fef3c7;color:#92400e}
+.status-badge.final{background:#dcfce7;color:#166534}
+.status-badge.leave{background:#e0e7ff;color:#3730a3}
 </style>
 </head>
 <body>
 
-<div class="overlay" id="loader">
-  <div class="ring"></div>
-  <div class="msg" id="loaderMsg">Please wait…</div>
-</div>
+<div class="overlay" id="loader"><div class="ring"></div><div class="msg" id="loaderMsg">Please wait…</div></div>
 
 <!-- LOGIN -->
 <div class="login-wrap" id="loginScreen">
   <div class="login-card">
     <h1>🎓 GATE Mentor Report Portal</h1>
     <p class="sub">Secure login with OTP + Security Code</p>
-
-    <div class="step-indicator">
-      <div class="step-dot active" id="dot1"></div>
-      <div class="step-dot" id="dot2"></div>
-      <div class="step-dot" id="dot3"></div>
-    </div>
+    <div class="step-indicator"><div class="step-dot active" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
 
     <div id="stepEmail">
       <label>Step 1 — Email Address</label>
       <input type="email" id="login_email" placeholder="yourname@pw.live" autocomplete="email">
-      <div style="margin-top:20px">
-        <button class="btn" style="width:100%" id="btnSendOtp" onclick="sendOtp()">
-          <span class="lbl">📧 Send OTP</span>
-        </button>
-      </div>
+      <div style="margin-top:20px"><button class="btn" style="width:100%" id="btnSendOtp" onclick="sendOtp()"><span class="lbl">📧 Send OTP</span></button></div>
       <div class="note">An OTP will be sent to your registered email.</div>
       <div class="diag" id="diagBox"></div>
     </div>
 
     <div id="stepOtp" class="hidden">
       <label>Step 2 — Enter 6-digit OTP</label>
-      <div class="otp-row">
-        <input type="text" id="login_otp" maxlength="6" inputmode="numeric" placeholder="______">
-      </div>
+      <div class="otp-row"><input type="text" id="login_otp" maxlength="6" inputmode="numeric" placeholder="______"></div>
       <div style="margin-top:20px;display:flex;gap:10px">
-        <button class="btn" style="flex:1" id="btnNext" onclick="goToStep3()">
-          <span class="lbl">Next →</span>
-        </button>
-        <button class="btn ghost" id="btnResend" onclick="sendOtp(true)" disabled>
-          <span class="lbl">Resend OTP (<span id="resendTimer">20</span>s)</span>
-        </button>
+        <button class="btn" style="flex:1" id="btnNext" onclick="goToStep3()"><span class="lbl">Next →</span></button>
+        <button class="btn ghost" id="btnResend" onclick="sendOtp(true)" disabled><span class="lbl">Resend OTP (<span id="resendTimer">20</span>s)</span></button>
       </div>
       <a class="link" onclick="backToEmail()">← Change email</a>
       <div class="note">OTP sent to <b id="otpSentTo"></b>. Valid for 5 minutes.</div>
@@ -149,15 +133,8 @@
     <div id="stepCode" class="hidden">
       <label>Step 3 — Security Code</label>
       <input type="password" id="login_code" placeholder="Enter your security code" autocomplete="off">
-      <div style="margin-top:20px">
-        <button class="btn" style="width:100%" id="btnVerify" onclick="verifyLogin()">
-          <span class="lbl">🔓 Login</span>
-        </button>
-      </div>
-      <div class="note warn">
-        <b>Mentors:</b> Enter the Security Code given by admin.<br>
-        <b>Admin:</b> Enter the admin code.
-      </div>
+      <div style="margin-top:20px"><button class="btn" style="width:100%" id="btnVerify" onclick="verifyLogin()"><span class="lbl">🔓 Login</span></button></div>
+      <div class="note warn"><b>Mentors:</b> Enter the Security Code given by admin.<br><b>Admin:</b> Enter the admin code.</div>
       <a class="link" onclick="backToEmail()">← Start over</a>
     </div>
   </div>
@@ -170,7 +147,6 @@
     <div class="user">
       <span id="hdr_name"></span>
       <span class="badge hidden" id="hdr_admin">ADMIN</span>
-      <!-- FIX: Added type="button" -->
       <button type="button" class="logout" id="btnLogout" onclick="doLogout(event)">Logout</button>
     </div>
   </header>
@@ -230,12 +206,8 @@
         <div><label>From Date</label><input type="date" id="mr_from"></div>
         <div><label>To Date</label><input type="date" id="mr_to"></div>
       </div>
-      <div class="row-flex" style="margin-top:12px">
-        <button class="btn" id="btnMrLoad" onclick="loadMyReports()"><span class="lbl">🔍 Load My Reports</span></button>
-      </div>
-      <div id="myReportsResults" style="margin-top:20px">
-        <div class="empty">Select date range and click Load.</div>
-      </div>
+      <div class="row-flex" style="margin-top:12px"><button class="btn" id="btnMrLoad" onclick="loadMyReports()"><span class="lbl">🔍 Load My Reports</span></button></div>
+      <div id="myReportsResults" style="margin-top:20px"><div class="empty">Select date range and click Load.</div></div>
     </div>
   </div>
 
@@ -247,10 +219,8 @@
         <div><label>To Date *</label><input type="date" id="l_to"></div>
       </div>
       <div style="margin-top:14px"><label>Reason (optional)</label><textarea id="l_reason" rows="2"></textarea></div>
-      <div class="row-flex" style="margin-top:16px">
-        <button class="btn" id="btnLeave" onclick="submitLeave()"><span class="lbl">Apply Leave</span></button>
-      </div>
-      <div class="note ok">💡 When you apply leave: admin gets an email notification, and your Assigned entries for those dates will be auto-marked with MCD = "Leave".</div>
+      <div class="row-flex" style="margin-top:16px"><button class="btn" id="btnLeave" onclick="submitLeave()"><span class="lbl">Apply Leave</span></button></div>
+      <div class="note ok">💡 When you apply leave: admin gets an email notification, and your Assigned entries for those dates will be auto-marked with MCD = "Leave" (existing reports are not overwritten).</div>
       <div class="section-title">Your Leaves</div>
       <div id="leave_list"><div class="empty"><span class="spinner dark"></span>Loading…</div></div>
     </div>
@@ -266,11 +236,7 @@
         <div><label>Branch</label><select id="d_branch"><option value="">All</option></select></div>
         <div><label>Category</label><select id="d_category"><option value="">All</option></select></div>
         <div><label>Type</label>
-          <select id="d_type">
-            <option value="both">Both (Assigned + Pending)</option>
-            <option value="assigned">Assigned only</option>
-            <option value="pending">Pending only</option>
-          </select>
+          <select id="d_type"><option value="both">Both (Assigned + Pending)</option><option value="assigned">Assigned only</option><option value="pending">Pending only</option></select>
         </div>
       </div>
       <div class="row-flex" style="margin-top:16px">
@@ -278,9 +244,7 @@
         <button class="btn ghost" id="btnCsvA" onclick="downloadCSV('assigned')"><span class="lbl">⬇ Assigned CSV</span></button>
         <button class="btn ghost" id="btnCsvP" onclick="downloadCSV('pending')"><span class="lbl">⬇ Pending CSV</span></button>
       </div>
-      <div id="dash_results" style="margin-top:22px">
-        <div class="empty">Apply filters and click Run Report.</div>
-      </div>
+      <div id="dash_results" style="margin-top:22px"><div class="empty">Apply filters and click Run Report.</div></div>
     </div>
 
     <div class="card" id="monthlyMcdCard">
@@ -290,9 +254,7 @@
         <div><label>From Date</label><input type="date" id="mm_from"></div>
         <div><label>To Date</label><input type="date" id="mm_to"></div>
       </div>
-      <div class="row-flex" style="margin-top:12px">
-        <button class="btn" id="btnMmLoad" onclick="loadMonthlyMCD()"><span class="lbl">📅 Get MCD Report</span></button>
-      </div>
+      <div class="row-flex" style="margin-top:12px"><button class="btn" id="btnMmLoad" onclick="loadMonthlyMCD()"><span class="lbl">📅 Get MCD Report</span></button></div>
       <div id="mm_results" style="margin-top:16px"></div>
     </div>
 
@@ -302,16 +264,13 @@
         <div><label>From Date</label><input type="date" id="ds_from"></div>
         <div><label>To Date</label><input type="date" id="ds_to"></div>
       </div>
-      <div class="row-flex" style="margin-top:12px">
-        <button class="btn" id="btnDsLoad" onclick="loadDailyStatus()"><span class="lbl">📅 Load Tracker</span></button>
-      </div>
+      <div class="row-flex" style="margin-top:12px"><button class="btn" id="btnDsLoad" onclick="loadDailyStatus()"><span class="lbl">📅 Load Tracker</span></button></div>
       <div style="margin-top:14px;font-size:12px">
-        <span class="chip final">✅ Final</span>
-        <span class="chip draft">📝 Draft</span>
+        <span class="chip final">✅ Final</span><span class="chip draft">📝 Draft</span>
         <span class="chip" style="background:#e0e7ff;color:#3730a3">🌴 Leave</span>
         <span class="chip" style="background:#fee2e2;color:#b91c1c">❌ Missing</span>
       </div>
-      <div id="dailyStatusResults" style="margin-top:16px; overflow-x:auto"></div>
+      <div id="dailyStatusResults" style="margin-top:16px;overflow-x:auto"></div>
     </div>
   </div>
 
@@ -320,10 +279,7 @@
       <h2 style="margin-top:0">⚙️ Admin Control Panel</h2>
 
       <div class="section-title">1. Categories</div>
-      <div class="row-flex">
-        <input id="new_cat" placeholder="Category name" style="max-width:280px">
-        <button class="btn" id="btnAddCat" onclick="addCategory()"><span class="lbl">+ Add Category</span></button>
-      </div>
+      <div class="row-flex"><input id="new_cat" placeholder="Category name" style="max-width:280px"><button class="btn" id="btnAddCat" onclick="addCategory()"><span class="lbl">+ Add Category</span></button></div>
       <div id="cat_list" style="margin-top:12px"></div>
 
       <div class="section-title" style="margin-top:26px">2. Mentors</div>
@@ -336,10 +292,7 @@
       <div id="mentor_list" style="margin-top:12px"></div>
 
       <div class="section-title" style="margin-top:26px">3. Branches</div>
-      <div class="row-flex">
-        <input id="new_branch" placeholder="Branch name" style="max-width:280px">
-        <button class="btn" id="btnAddBranch" onclick="addBranch()"><span class="lbl">+ Add Branch</span></button>
-      </div>
+      <div class="row-flex"><input id="new_branch" placeholder="Branch name" style="max-width:280px"><button class="btn" id="btnAddBranch" onclick="addBranch()"><span class="lbl">+ Add Branch</span></button></div>
       <div id="branch_list" style="margin-top:12px"></div>
 
       <div class="section-title" style="margin-top:26px">4. Co-Admins</div>
@@ -351,10 +304,7 @@
       <div id="admin_list" style="margin-top:12px"></div>
 
       <div class="section-title" style="margin-top:26px">5. Change Admin Code</div>
-      <div class="row-flex">
-        <input id="new_admin_code" type="password" placeholder="New admin code" style="max-width:280px">
-        <button class="btn" id="btnSetAdminCode" onclick="setAdminCode()"><span class="lbl">🔐 Update</span></button>
-      </div>
+      <div class="row-flex"><input id="new_admin_code" type="password" placeholder="New admin code" style="max-width:280px"><button class="btn" id="btnSetAdminCode" onclick="setAdminCode()"><span class="lbl">🔐 Update</span></button></div>
 
       <div class="section-title" style="margin-top:26px">6. Override — Missing Date Entry</div>
       <div class="grid">
@@ -382,9 +332,7 @@
         <div><label>DNP3</label><input type="number" min="0" placeholder="0" id="ov_p_DNP3"></div>
         <div><label>Followup</label><input type="number" min="0" placeholder="0" id="ov_p_Followup"></div>
       </div>
-      <div class="row-flex" style="margin-top:16px">
-        <button class="btn" id="btnOverride" onclick="submitOverride()"><span class="lbl">💾 Save Override</span></button>
-      </div>
+      <div class="row-flex" style="margin-top:16px"><button class="btn" id="btnOverride" onclick="submitOverride()"><span class="lbl">💾 Save Override</span></button></div>
 
       <div class="section-title" style="margin-top:26px">7. Unlock a FINAL Report</div>
       <div class="grid">
@@ -393,69 +341,55 @@
         <div><label>Branch</label><select id="ul_branch"></select></div>
         <div><label>Category</label><select id="ul_category"></select></div>
       </div>
-      <div class="row-flex" style="margin-top:16px">
-        <button class="btn warn" id="btnUnlock" onclick="unlockReport()"><span class="lbl">🔓 Unlock</span></button>
-      </div>
+      <div class="row-flex" style="margin-top:16px"><button class="btn warn" id="btnUnlock" onclick="unlockReport()"><span class="lbl">🔓 Unlock</span></button></div>
     </div>
   </div>
 </div>
 
+<div class="modal" id="okModal"><div class="box"><h3 id="okTitle"></h3><p id="okMsg"></p><button type="button" class="btn" onclick="document.getElementById('okModal').classList.remove('show')">OK</button></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 const DEPLOY_URL = 'https://script.google.com/macros/s/AKfycbwRq0B2mac2EQB1i_rSKdhx_QB8ID8BgJJ0jgVYozIU-f9jSCtTw3T78F4ox96VYx4sGA/exec';
 
-const STATE = {
-  token:null, email:null, name:null, isAdmin:false,
-  mentors:[], allMentors:[], categories:[], branches:[],
-  today:null, pendingEmail:null, pendingOtp:null, currentReportStatus:null
-};
+const STATE = { token:null, email:null, name:null, isAdmin:false, mentors:[], allMentors:[], categories:[], branches:[], today:null, pendingEmail:null, pendingOtp:null, currentReportStatus:null };
+const NUM_IDS = ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD','r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup'];
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function showLoader(msg){ $('loaderMsg').textContent = msg || 'Please wait…'; $('loader').classList.add('show'); }
 function hideLoader(){ $('loader').classList.remove('show'); }
 function toast(msg, type){
-  const t = $('toast'); t.textContent = msg;
-  t.className = 'toast show ' + (type || 'ok');
-  clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', 3600);
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + (type || 'ok');
+  clearTimeout(t._h); t._h = setTimeout(() => { t.className = 'toast'; }, 4500);
 }
+function showSuccess(title, msg){ $('okTitle').textContent = title; $('okMsg').textContent = msg; $('okModal').classList.add('show'); }
+window.addEventListener('error', hideLoader);
+window.addEventListener('unhandledrejection', hideLoader);
 function showDiag(msg){ const d=$('diagBox'); if(!d)return; d.textContent=msg; d.classList.add('show'); }
-function clearDiag(){ const d=$('diagBox'); if(d){d.classList.remove('show'); d.textContent='';} }
-function btnBusy(id, busyText){
-  const btn = $(id); if (!btn) return;
-  const lbl = btn.querySelector('.lbl'); if (!lbl) return;
-  if (!btn.dataset.orig) btn.dataset.orig = lbl.innerHTML;
-  btn.disabled = true;
-  lbl.innerHTML = '<span class="spinner"></span>' + (busyText || 'Please wait…');
+function clearDiag(){ const d=$('diagBox'); if(d){ d.classList.remove('show'); d.textContent=''; } }
+function btnBusy(id, txt){
+  const b = $(id); if (!b) return; const l = b.querySelector('.lbl'); if (!l) return;
+  if (!b.dataset.orig) b.dataset.orig = l.innerHTML;
+  b.disabled = true; l.innerHTML = '<span class="spinner"></span>' + (txt || 'Please wait…');
 }
 function btnDone(id){
-  const btn = $(id); if (!btn) return;
-  const lbl = btn.querySelector('.lbl'); if (!lbl) return;
-  if (btn.dataset.orig) lbl.innerHTML = btn.dataset.orig;
-  btn.disabled = false;
+  const b = $(id); if (!b) return; const l = b.querySelector('.lbl'); if (!l) return;
+  if (b.dataset.orig) l.innerHTML = b.dataset.orig; b.disabled = false;
 }
 
 /* ---------- API with retry ---------- */
 async function apiOnce(fn, args){
-  const res = await fetch(DEPLOY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ fn: fn, args: args }),
-    redirect: 'follow'
-  });
+  const res = await fetch(DEPLOY_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ fn:fn, args:args }), redirect:'follow' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const text = await res.text();
   try { return JSON.parse(text); }
   catch (e) {
-    if (text.indexOf('<!DOCTYPE') === 0 || text.indexOf('<html') >= 0) {
-      throw new Error('Backend returned HTML instead of JSON. Check deployment access is "Anyone".');
-    }
+    if (text.indexOf('<!DOCTYPE') === 0 || text.indexOf('<html') >= 0) throw new Error('Backend returned HTML instead of JSON. Check deployment access is "Anyone".');
     throw new Error('Bad response: ' + text.substring(0, 150));
   }
 }
 async function api(fn, ...args){
-  if (!DEPLOY_URL || DEPLOY_URL.includes('PASTE_YOUR')) return { ok:false, error:'DEPLOY_URL not set.' };
   let lastErr = 'Unknown error';
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -464,13 +398,11 @@ async function api(fn, ...args){
       lastErr = 'Invalid response format';
     } catch (e) {
       lastErr = e.message;
-      if (lastErr.indexOf('401') !== -1) break;
       if (attempt < 3) await new Promise(res => setTimeout(res, 800 * attempt));
     }
   }
   return { ok:false, error:lastErr };
 }
-
 function unwrap(res){
   if (!res) return { ok:false, error:'Empty response.' };
   if (!res.ok && res.error === 'SESSION_EXPIRED') {
@@ -479,133 +411,94 @@ function unwrap(res){
   }
   return res;
 }
-function saveToken(t){ try{localStorage.setItem('gate_token', t);}catch(e){} }
-function getToken(){ try{return localStorage.getItem('gate_token');}catch(e){return null;} }
-function clearToken(){ try{localStorage.removeItem('gate_token');}catch(e){} }
+function saveToken(t){ try{ localStorage.setItem('gate_token', t); }catch(e){} }
+function getToken(){ try{ return localStorage.getItem('gate_token'); }catch(e){ return null; } }
+function clearToken(){ try{ localStorage.removeItem('gate_token'); }catch(e){} }
 
-/* ---------- Form persistence ---------- */
-function saveDraftToLocal(){
-  try {
-    const ids = ['r_date','r_mentor','r_branch','r_category',
-      'r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
-      'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup'];
-    const data = {};
-    ids.forEach(id => { const el = $(id); if (el) data[id] = el.value; });
-    localStorage.setItem('gate_form_draft', JSON.stringify(data));
-  } catch(e){}
+/* ---------- Form draft persistence (numbers only, only for same date|mentor|branch|category) ---------- */
+function draftKey(){ return [$('r_date').value,$('r_mentor').value,$('r_branch').value,$('r_category').value].join('|'); }
+function saveDraftToLocal(ev){
+  if (ev && ev.target && !/^r_[ap]_/.test(ev.target.id)) return;
+  try { const v = {}; NUM_IDS.forEach(id => { v[id] = $(id).value; }); localStorage.setItem('gate_form_draft', JSON.stringify({ key: draftKey(), v: v })); } catch(e){}
 }
 function loadDraftFromLocal(){
   try {
-    const raw = localStorage.getItem('gate_form_draft');
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-    Object.keys(data).forEach(id => { const el = $(id); if (el) el.value = data[id]; });
+    const raw = localStorage.getItem('gate_form_draft'); if (!raw) return false;
+    const d = JSON.parse(raw); if (!d || d.key !== draftKey() || !d.v) return false;
+    NUM_IDS.forEach(id => { if (d.v[id] != null) $(id).value = d.v[id]; });
     return true;
   } catch(e) { return false; }
 }
-function clearDraftFromLocal(){
-  try { localStorage.removeItem('gate_form_draft'); } catch(e){}
-}
+function clearDraftFromLocal(){ try{ localStorage.removeItem('gate_form_draft'); }catch(e){} }
 
 /* ---------- Login ---------- */
 let resendTimerInterval = null;
-
 function setStep(n){
-  $('dot1').className = 'step-dot' + (n >= 1 ? (n > 1 ? ' done' : ' active') : '');
-  $('dot2').className = 'step-dot' + (n >= 2 ? (n > 2 ? ' done' : ' active') : '');
+  $('dot1').className = 'step-dot' + (n > 1 ? ' done' : ' active');
+  $('dot2').className = 'step-dot' + (n > 2 ? ' done' : (n === 2 ? ' active' : ''));
   $('dot3').className = 'step-dot' + (n >= 3 ? ' active' : '');
   $('stepEmail').classList.toggle('hidden', n !== 1);
   $('stepOtp').classList.toggle('hidden', n !== 2);
   $('stepCode').classList.toggle('hidden', n !== 3);
 }
-
 function startResendTimer(){
-  let s = 20;
-  const btn = $('btnResend');
-  if (!btn) return;
-  btn.disabled = true;
-  $('resendTimer').textContent = s;
+  let s = 20; const btn = $('btnResend'); if (!btn) return;
+  btn.disabled = true; btn.querySelector('.lbl').innerHTML = 'Resend OTP (<span id="resendTimer">' + s + '</span>s)';
   if (resendTimerInterval) clearInterval(resendTimerInterval);
   resendTimerInterval = setInterval(() => {
     s--;
-    if (s <= 0) {
-      clearInterval(resendTimerInterval);
-      btn.disabled = false;
-      btn.querySelector('.lbl').innerHTML = 'Resend OTP';
-    } else {
-      $('resendTimer').textContent = s;
-    }
+    if (s <= 0) { clearInterval(resendTimerInterval); btn.disabled = false; btn.querySelector('.lbl').innerHTML = 'Resend OTP'; }
+    else { const t = $('resendTimer'); if (t) t.textContent = s; }
   }, 1000);
 }
-
 async function sendOtp(isResend){
   clearDiag();
   const email = ($('login_email').value || '').trim().toLowerCase();
   if (!email) return toast('Please enter your email', 'err');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Enter a valid email', 'err');
-
-  const btnId = isResend ? 'btnResend' : 'btnSendOtp';
-  btnBusy(btnId, 'Sending…');
   showLoader('Sending OTP…');
   const r = unwrap(await api('requestOtp', email));
   hideLoader();
-  btnDone(btnId);
   if (!r.ok) { showDiag('❌ ' + r.error); return toast(r.error, 'err'); }
-
-  STATE.pendingEmail = email;
-  $('otpSentTo').textContent = email;
-  setStep(2);
-  $('login_otp').value = '';
-  $('login_otp').focus();
-  toast('OTP sent to ' + email, 'ok');
-  startResendTimer();
+  STATE.pendingEmail = email; $('otpSentTo').textContent = email;
+  setStep(2); $('login_otp').value = ''; $('login_otp').focus();
+  toast('OTP sent to ' + email, 'ok'); startResendTimer();
 }
-
 function backToEmail(){
-  STATE.pendingEmail = null;
-  STATE.pendingOtp = null;
-  setStep(1);
+  STATE.pendingEmail = null; STATE.pendingOtp = null; setStep(1);
   if (resendTimerInterval) { clearInterval(resendTimerInterval); resendTimerInterval = null; }
 }
-
 function goToStep3(){
   const otp = ($('login_otp').value || '').trim();
   if (!/^\d{6}$/.test(otp)) return toast('Enter 6-digit OTP', 'err');
-  STATE.pendingOtp = otp;
-  setStep(3);
-  $('login_code').value = '';
-  $('login_code').focus();
+  STATE.pendingOtp = otp; setStep(3); $('login_code').value = ''; $('login_code').focus();
 }
-
 async function verifyLogin(){
   const code = ($('login_code').value || '').trim();
   if (!code) return toast('Enter your Security Code', 'err');
-  btnBusy('btnVerify', 'Verifying…');
   showLoader('Logging in…');
   const r = unwrap(await api('verifyOtp', STATE.pendingEmail, STATE.pendingOtp, code));
   hideLoader();
-  btnDone('btnVerify');
-  if (!r.ok) { setStep(3); return toast(r.error, 'err'); }
-  STATE.token = r.data.token; STATE.email = r.data.email;
-  STATE.name = r.data.name; STATE.isAdmin = r.data.isAdmin;
+  if (!r.ok) {
+    // wrong OTP -> go back to OTP step, wrong code -> stay on code step
+    if (/otp/i.test(r.error) && !/security code/i.test(r.error)) setStep(2); else setStep(3);
+    return toast(r.error, 'err');
+  }
+  STATE.token = r.data.token; STATE.email = r.data.email; STATE.name = r.data.name; STATE.isAdmin = r.data.isAdmin;
   saveToken(STATE.token);
-  showLoader('Loading portal…');
   await enterApp();
-  hideLoader();
   if (resendTimerInterval) { clearInterval(resendTimerInterval); resendTimerInterval = null; }
 }
 
-/* ---------- Logout ---------- */
-async function doLogout(e){
+/* ---------- Logout (instant) ---------- */
+function doLogout(e){
   if (e) e.preventDefault();
   if (!confirm('Are you sure you want to logout?')) return;
+  const t = STATE.token || getToken();
+  clearToken(); clearDraftFromLocal();
   showLoader('Logging out…');
-  try {
-    if (STATE.token) await api('logout', STATE.token);
-  } catch(e){}
-  clearToken();
-  clearDraftFromLocal();
-  setTimeout(() => location.reload(), 200);
+  try { fetch(DEPLOY_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ fn:'logout', args:[t] }), keepalive:true }).catch(()=>{}); } catch(_) {}
+  setTimeout(() => location.reload(), 400);
 }
 
 /* ---------- App ---------- */
@@ -615,72 +508,44 @@ async function enterApp(){
   hideLoader();
   if (!r.ok) { toast(r.error, 'err'); clearToken(); return; }
   const d = r.data;
-  STATE.mentors = d.mentors; STATE.allMentors = d.allMentors;
-  STATE.categories = d.categories; STATE.branches = d.branches;
+  STATE.mentors = d.mentors; STATE.allMentors = d.allMentors; STATE.categories = d.categories; STATE.branches = d.branches;
   STATE.today = d.today; STATE.name = d.myName; STATE.isAdmin = d.isAdmin;
 
-  $('loginScreen').classList.add('hidden');
-  $('appScreen').classList.remove('hidden');
+  $('loginScreen').classList.add('hidden'); $('appScreen').classList.remove('hidden');
   $('hdr_name').textContent = d.myName + ' • ' + d.email;
-
   if (d.isAdmin) {
-    $('hdr_admin').classList.remove('hidden');
-    $('adminTab').classList.remove('hidden');
-    $('dashboardTab').classList.remove('hidden');
-    if ($('monthlyMcdCard')) $('monthlyMcdCard').style.display = 'block';
-    if ($('dailyStatusCard')) $('dailyStatusCard').style.display = 'block';
+    $('hdr_admin').classList.remove('hidden'); $('adminTab').classList.remove('hidden'); $('dashboardTab').classList.remove('hidden');
+    $('monthlyMcdCard').style.display = 'block'; $('dailyStatusCard').style.display = 'block';
   } else {
-    $('myreportsTab').classList.remove('hidden');
     $('dashboardTab').classList.add('hidden');
-    if ($('monthlyMcdCard')) $('monthlyMcdCard').style.display = 'none';
-    if ($('dailyStatusCard')) $('dailyStatusCard').style.display = 'none';
+    $('monthlyMcdCard').style.display = 'none'; $('dailyStatusCard').style.display = 'none';
   }
-
-  populateSelects();
-  setupTabs();
-  setupLockBanners();
+  populateSelects(); setupTabs(); setupLockBanners();
   if (d.isAdmin) { renderAdminLists(); loadCoAdmins(); }
+  if (!d.isAdmin) { const el = $('r_date'); el.min = STATE.today; el.max = STATE.today; el.value = STATE.today; }
 
-  if (!d.isAdmin) {
-    ['r_date'].forEach(id => {
-      const el = $(id); if (el) { el.min = STATE.today; el.max = STATE.today; el.value = STATE.today; }
-    });
-  }
-
-  const restored = loadDraftFromLocal();
-  if (restored) toast('Previous form data restored 📝', 'ok');
-
-  ['r_date','r_mentor','r_branch','r_category',
-   'r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
-   'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
-    .forEach(id => { const el = $(id); if (el) el.addEventListener('input', saveDraftToLocal); });
-
+  NUM_IDS.forEach(id => { const el = $(id); if (el) el.addEventListener('input', saveDraftToLocal); });
   loadLeaves();
-  if (!restored) loadExistingReport();
+  loadExistingReport();
 }
 
 function populateSelects(){
   const opts = arr => arr.map(x => `<option value="${esc(x.Name)}">${esc(x.Name)}</option>`).join('');
-  const mentOpts = opts(STATE.mentors);
-  const catOpts = opts(STATE.categories);
-  const brOpts = opts(STATE.branches);
-
-  ['r_mentor','ov_mentor','ul_mentor'].forEach(id => { const el = $(id); if (el) el.innerHTML = mentOpts || ''; });
-  ['r_category','ov_category','ul_category'].forEach(id => { const el = $(id); if (el) el.innerHTML = catOpts || ''; });
-  ['r_branch','ov_branch','ul_branch'].forEach(id => { const el = $(id); if (el) el.innerHTML = brOpts || ''; });
-
+  const m = opts(STATE.mentors), c = opts(STATE.categories), b = opts(STATE.branches);
+  ['r_mentor','ov_mentor','ul_mentor'].forEach(id => { $(id).innerHTML = m; });
+  ['r_category','ov_category','ul_category'].forEach(id => { $(id).innerHTML = c; });
+  ['r_branch','ov_branch','ul_branch'].forEach(id => { $(id).innerHTML = b; });
   $('d_mentor').innerHTML = '<option value="">All</option>' + opts(STATE.allMentors);
-  $('d_category').innerHTML = '<option value="">All</option>' + catOpts;
-  $('d_branch').innerHTML = '<option value="">All</option>' + brOpts;
+  $('d_category').innerHTML = '<option value="">All</option>' + c;
+  $('d_branch').innerHTML = '<option value="">All</option>' + b;
 
-  if (!$('r_date').value) $('r_date').value = STATE.today;
-  $('ov_date').value = STATE.today;
-  if ($('ul_date')) $('ul_date').value = STATE.today;
-  $('d_from').value = STATE.today;
-  $('d_to').value = STATE.today;
-  if ($('ds_from')) { $('ds_from').value = STATE.today; $('ds_to').value = STATE.today; }
-  if ($('mr_from')) { $('mr_from').value = STATE.today; $('mr_to').value = STATE.today; }
-  if ($('mm_from')) { $('mm_from').value = STATE.today.substring(0,8) + '01'; $('mm_to').value = STATE.today; }
+  const T = STATE.today, M = T.substring(0, 8) + '01';
+  if (!$('r_date').value) $('r_date').value = T;
+  $('ov_date').value = T; $('ul_date').value = T;
+  $('d_from').value = T; $('d_to').value = T;
+  $('ds_from').value = T; $('ds_to').value = T;
+  $('mr_from').value = M; $('mr_to').value = T;
+  $('mm_from').value = M; $('mm_to').value = T;
 }
 
 function setupTabs(){
@@ -688,181 +553,121 @@ function setupTabs(){
     t.onclick = () => {
       document.querySelectorAll('#tabs .tab').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      $('panel-' + t.dataset.panel).classList.add('active');
+      t.classList.add('active'); $('panel-' + t.dataset.panel).classList.add('active');
       if (t.dataset.panel === 'dashboard') loadDashboard();
       if (t.dataset.panel === 'myreports') loadMyReports();
+      if (t.dataset.panel === 'leave') loadLeaves();
     };
   });
 }
-
 function setupLockBanners(){
-  const isMentor = !STATE.isAdmin;
-  const msg = isMentor
-    ? '💾 <b>Save Draft</b> to work on it later · 🔒 <b>Final Submit</b> locks the report · ⚠️ Only TODAY\'s report is allowed.'
-    : '💾 Save Draft or Final Submit — admin has no date restriction.';
-  $('lockReport').innerHTML = msg;
+  $('lockReport').innerHTML = STATE.isAdmin
+    ? '💾 Save Draft or Final Submit — admin has no date restriction.'
+    : '💾 <b>Save Draft</b> to work on it later · 🔒 <b>Final Submit</b> locks the report · ⚠️ Only TODAY\'s report is allowed.';
 }
 
 function validateReportFields(){
-  const requiredIds = ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
-                       'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup'];
-  let missing = [];
-  requiredIds.forEach(id => {
-    const el = $(id);
-    if (el) {
-      const v = String(el.value).trim();
-      if (v === '') { el.classList.add('err'); missing.push(id); }
-      else { el.classList.remove('err'); }
-    }
+  const missing = [];
+  NUM_IDS.forEach(id => {
+    const el = $(id), v = String(el.value).trim();
+    if (v === '' || Number(v) < 0 || isNaN(Number(v))) { el.classList.add('err'); missing.push(id); } else el.classList.remove('err');
   });
-  if (missing.length > 0) {
-    toast('⚠️ All fields are required. If count is zero, please enter 0.', 'err');
-    const first = $(missing[0]); if (first) first.focus();
-    return false;
-  }
+  if (missing.length) { toast('⚠️ All fields are required. If count is zero, please enter 0.', 'err'); $(missing[0]).focus(); return false; }
   return true;
 }
 
+let loadSeq = 0;
 async function loadExistingReport(){
-  const date = $('r_date').value;
-  const mentor = $('r_mentor').value;
-  const branch = $('r_branch').value;
-  const category = $('r_category').value;
+  const date = $('r_date').value, mentor = $('r_mentor').value, branch = $('r_branch').value, category = $('r_category').value;
   if (!date || !mentor || !branch || !category) return;
-
-  const banner = $('reportStatusBanner');
+  const seq = ++loadSeq, banner = $('reportStatusBanner');
   banner.innerHTML = '<div class="note" style="margin-top:14px"><span class="spinner dark"></span> Checking…</div>';
-
-  const r = await api('getTodayStatus', STATE.token, date, mentor, branch, category);
-  if (!r || !r.ok) { banner.innerHTML = ''; return; }
+  const r = unwrap(await api('getTodayStatus', STATE.token, date, mentor, branch, category));
+  if (seq !== loadSeq) return;               // a newer request is in flight
+  if (!r || !r.ok) { banner.innerHTML = r && r.error ? '<div class="note warn" style="margin-top:14px">⚠ ' + esc(r.error) + '</div>' : ''; return; }
 
   if (!r.data.exists) {
     banner.innerHTML = '<div class="note" style="margin-top:14px">✨ New report — fill and Save Draft or Final Submit.</div>';
     STATE.currentReportStatus = null;
-    if (!loadDraftFromLocal()) {
-      ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
-       'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
-        .forEach(k => { const el = $(k); if (el) el.value = ''; });
-    }
+    NUM_IDS.forEach(k => { $(k).value = ''; $(k).classList.remove('err'); });
+    loadDraftFromLocal();
     enableFormFields(true);
     return;
   }
-
-  const a = r.data.assigned || {};
-  const p = r.data.pending || {};
-  $('r_a_FMCR').value = a.FMCR != null ? a.FMCR : 0;
-  $('r_a_MCR').value = a.MCR != null ? a.MCR : 0;
-  $('r_a_DNP1').value = a.DNP1 != null ? a.DNP1 : 0;
-  $('r_a_DNP2').value = a.DNP2 != null ? a.DNP2 : 0;
-  $('r_a_DNP3').value = a.DNP3 != null ? a.DNP3 : 0;
-  $('r_a_Followup').value = a.Followup != null ? a.Followup : 0;
-  $('r_a_MCD').value = a.MCD != null ? a.MCD : 0;
-  $('r_p_FMCR').value = p.FMCR != null ? p.FMCR : 0;
-  $('r_p_MCR').value = p.MCR != null ? p.MCR : 0;
-  $('r_p_DNP1').value = p.DNP1 != null ? p.DNP1 : 0;
-  $('r_p_DNP2').value = p.DNP2 != null ? p.DNP2 : 0;
-  $('r_p_DNP3').value = p.DNP3 != null ? p.DNP3 : 0;
-  $('r_p_Followup').value = p.Followup != null ? p.Followup : 0;
+  const a = r.data.assigned || {}, p = r.data.pending || {};
+  ['FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD'].forEach(k => { $('r_a_' + k).value = a[k] != null ? a[k] : 0; });
+  ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => { $('r_p_' + k).value = p[k] != null ? p[k] : 0; });
+  NUM_IDS.forEach(k => $(k).classList.remove('err'));
   saveDraftToLocal();
 
   if (r.data.status === 'Final') {
     STATE.currentReportStatus = 'Final';
-    banner.innerHTML = '<div class="note warn" style="margin-top:14px">🔒 <b>Final Submitted</b> — Locked. Contact admin to unlock.</div>';
-    enableFormFields(false);
+    banner.innerHTML = '<div class="note warn" style="margin-top:14px">🔒 <b>Final Submitted</b> — Locked.' + (STATE.isAdmin ? '' : ' Contact admin to unlock.') + '</div>';
+    enableFormFields(STATE.isAdmin);
   } else {
     STATE.currentReportStatus = 'Draft';
     banner.innerHTML = '<div class="note" style="margin-top:14px">📝 <b>Draft saved</b> — You can edit and Final Submit anytime.</div>';
     enableFormFields(true);
   }
 }
-
-function enableFormFields(enabled){
-  const ids = ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
-                'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup'];
-  ids.forEach(id => { const el = $(id); if (el) el.disabled = !enabled; });
-  $('btnSaveDraft').disabled = !enabled;
-  $('btnFinalSubmit').disabled = !enabled;
+function enableFormFields(on){
+  NUM_IDS.forEach(id => { $(id).disabled = !on; });
+  $('btnSaveDraft').disabled = !on; $('btnFinalSubmit').disabled = !on;
 }
 
 async function submitReport(status){
-  const date = $('r_date').value;
-  const mentor = $('r_mentor').value;
-  const branch = $('r_branch').value;
-  const category = $('r_category').value;
+  const date = $('r_date').value, mentor = $('r_mentor').value, branch = $('r_branch').value, category = $('r_category').value;
   if (!date || !mentor || !branch || !category) return toast('Fill Date, Mentor, Branch, Category', 'err');
   if (!validateReportFields()) return;
-  if (status === 'Final') {
-    if (!confirm('⚠️ FINAL SUBMIT is permanent. You will NOT be able to edit after this. Continue?')) return;
-  }
-  const payload = {
-    date: date, mentor: mentor, branch: branch, category: category,
-    a_fmcr: $('r_a_FMCR').value, a_mcr: $('r_a_MCR').value,
-    a_dnp1: $('r_a_DNP1').value, a_dnp2: $('r_a_DNP2').value, a_dnp3: $('r_a_DNP3').value,
-    a_followup: $('r_a_Followup').value, a_mcd: $('r_a_MCD').value,
-    p_fmcr: $('r_p_FMCR').value, p_mcr: $('r_p_MCR').value,
-    p_dnp1: $('r_p_DNP1').value, p_dnp2: $('r_p_DNP2').value, p_dnp3: $('r_p_DNP3').value,
-    p_followup: $('r_p_Followup').value,
-    status: status
-  };
+  if (status === 'Final' && !confirm('⚠️ FINAL SUBMIT is permanent. You will NOT be able to edit after this. Continue?')) return;
+  const v = id => $(id).value;
+  const payload = { date, mentor, branch, category, status,
+    a_fmcr:v('r_a_FMCR'), a_mcr:v('r_a_MCR'), a_dnp1:v('r_a_DNP1'), a_dnp2:v('r_a_DNP2'), a_dnp3:v('r_a_DNP3'), a_followup:v('r_a_Followup'), a_mcd:v('r_a_MCD'),
+    p_fmcr:v('r_p_FMCR'), p_mcr:v('r_p_MCR'), p_dnp1:v('r_p_DNP1'), p_dnp2:v('r_p_DNP2'), p_dnp3:v('r_p_DNP3'), p_followup:v('r_p_Followup') };
   const btnId = status === 'Final' ? 'btnFinalSubmit' : 'btnSaveDraft';
   btnBusy(btnId, status === 'Final' ? 'Submitting…' : 'Saving…');
   const r = unwrap(await api('saveReport', STATE.token, payload));
   btnDone(btnId);
   if (!r.ok) return toast(r.error, 'err');
   toast(r.data.message, 'ok');
+  showSuccess(status === 'Final' ? 'Report Final Submitted ✅' : 'Draft Saved 💾', r.data.message + '\n' + date + ' · ' + mentor + ' · ' + branch + ' · ' + category);
   if (status === 'Final') clearDraftFromLocal();
-  loadExistingReport();
+  await loadExistingReport();
+  if (!STATE.isAdmin) loadMyReports();
 }
-
 function resetReportForm(){
-  ['r_a_FMCR','r_a_MCR','r_a_DNP1','r_a_DNP2','r_a_DNP3','r_a_Followup','r_a_MCD',
-   'r_p_FMCR','r_p_MCR','r_p_DNP1','r_p_DNP2','r_p_DNP3','r_p_Followup']
-    .forEach(k => { const el = $(k); if (el) { el.value = ''; el.classList.remove('err'); } });
-  $('r_date').value = STATE.today;
-  clearDraftFromLocal();
-  toast('Form reset', 'ok');
+  NUM_IDS.forEach(k => { $(k).value = ''; $(k).classList.remove('err'); });
+  if (!STATE.isAdmin) $('r_date').value = STATE.today;
+  clearDraftFromLocal(); toast('Form reset', 'ok');
 }
 
 async function loadMyReports(){
   const from = $('mr_from').value, to = $('mr_to').value;
   btnBusy('btnMrLoad', 'Loading…');
-  const r = await api('getMyReports', STATE.token, from, to);
+  const r = unwrap(await api('getMyReports', STATE.token, from, to));
   btnDone('btnMrLoad');
   if (!r.ok) { $('myReportsResults').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
   const { assigned, pending } = r.data;
-  if (!assigned.length && !pending.length) {
-    $('myReportsResults').innerHTML = '<div class="empty">No reports found for this range.</div>';
-    return;
-  }
-  let html = '';
-  html += '<div class="section-title">📘 My Assigned Reports (' + assigned.length + ')</div>';
-  html += tableGeneric(assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
-  html += '<div class="section-title" style="margin-top:22px">⏳ My Pending Reports (' + pending.length + ')</div>';
-  html += tableGeneric(pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']);
-  $('myReportsResults').innerHTML = html;
+  if (!assigned.length && !pending.length) { $('myReportsResults').innerHTML = '<div class="empty">No reports found for this range.</div>'; return; }
+  $('myReportsResults').innerHTML =
+    '<div class="section-title">📘 My Assigned Reports (' + assigned.length + ')</div>' +
+    tableGeneric(assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']) +
+    '<div class="section-title" style="margin-top:22px">⏳ My Pending Reports (' + pending.length + ')</div>' +
+    tableGeneric(pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']);
 }
-
 function tableGeneric(rows, cols){
   if (!rows.length) return '<div class="empty">No records.</div>';
-  let h = '<div style="overflow-x:auto"><table><thead><tr>';
-  cols.forEach(c => h += '<th>' + c + '</th>');
-  h += '</tr></thead><tbody>';
+  let h = '<div style="overflow-x:auto"><table><thead><tr>' + cols.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
   rows.forEach(r => {
-    h += '<tr>';
-    cols.forEach(k => {
+    h += '<tr>' + cols.map(k => {
       if (k === 'Status') {
-        const v = String(r.Status || 'Draft');
-        const cls = v === 'Final' ? 'final' : (v === 'Leave' ? 'leave' : 'draft');
-        h += `<td><span class="status-badge ${cls}">${esc(v)}</span></td>`;
-      } else {
-        h += '<td>' + esc(r[k]) + '</td>';
+        const v = String(r.Status || 'Draft'), cls = v === 'Final' ? 'final' : (v === 'Leave' ? 'leave' : 'draft');
+        return `<td><span class="status-badge ${cls}">${esc(v)}</span></td>`;
       }
-    });
-    h += '</tr>';
+      return '<td>' + esc(r[k]) + '</td>';
+    }).join('') + '</tr>';
   });
-  h += '</tbody></table></div>';
-  return h;
+  return h + '</tbody></table></div>';
 }
 
 async function submitLeave(){
@@ -872,27 +677,21 @@ async function submitLeave(){
   const r = unwrap(await api('applyLeave', STATE.token, from, to, reason));
   btnDone('btnLeave');
   if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); $('l_reason').value = ''; loadLeaves();
+  toast(r.data.message, 'ok'); showSuccess('Leave Applied 🌴', r.data.message + '\n' + from + ' → ' + to);
+  $('l_reason').value = ''; loadLeaves(); loadExistingReport();
 }
-
 async function loadLeaves(){
   $('leave_list').innerHTML = '<div class="empty"><span class="spinner dark"></span>Loading…</div>';
   const r = unwrap(await api('getLeaves', STATE.token));
-  if (!r.ok) return;
+  if (!r.ok) { $('leave_list').innerHTML = '<span class="muted">⚠ ' + esc(r.error) + '</span>'; return; }
   const list = r.data.leaves;
-  if (!list.length) { $('leave_list').innerHTML = '<span class="muted">No leaves yet.</span>'; return; }
-  $('leave_list').innerHTML = list.map(l =>
-    `<div class="row-flex" style="justify-content:space-between;border-bottom:1px dashed #e5e7eb;padding:8px 0">
-      <span><b>${esc(l.Mentor)}</b> — ${esc(l.FromDate)} → ${esc(l.ToDate)}</span>
-      <span class="muted">${esc(l.Reason || '')}</span></div>`).join('');
+  $('leave_list').innerHTML = list.length ? list.map(l =>
+    `<div class="row-flex" style="justify-content:space-between;border-bottom:1px dashed #e5e7eb;padding:8px 0"><span><b>${esc(l.Mentor)}</b> — ${esc(l.FromDate)} → ${esc(l.ToDate)}</span><span class="muted">${esc(l.Reason)}</span></div>`).join('')
+    : '<span class="muted">No leaves yet.</span>';
 }
 
 async function loadDashboard(){
-  const filters = {
-    from: $('d_from').value, to: $('d_to').value,
-    mentor: $('d_mentor').value, branch: $('d_branch').value,
-    category: $('d_category').value, type: $('d_type').value
-  };
+  const filters = { from:$('d_from').value, to:$('d_to').value, mentor:$('d_mentor').value, branch:$('d_branch').value, category:$('d_category').value, type:$('d_type').value };
   $('dash_results').innerHTML = '<div class="empty"><span class="spinner dark"></span>Fetching…</div>';
   btnBusy('btnFetch', 'Fetching…');
   const r = unwrap(await api('getDashboard', STATE.token, filters));
@@ -900,32 +699,23 @@ async function loadDashboard(){
   if (!r.ok) { $('dash_results').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
   renderDashboard(r.data, filters.type);
 }
-
 function renderDashboard(d, type){
   const tA = d.totals.assigned, tP = d.totals.pending;
-  const statBox = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
-  const mcdBox = (v) => `<div class="stat mcd"><div class="k">Total MCD</div><div class="v">${v}</div></div>`;
+  const box = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
   let html = '';
-
   if (type !== 'pending') {
     html += `<div class="section-title">📘 Assigned Totals (${tA.count} rows)</div><div class="stat-grid">`;
-    ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += statBox(k, tA[k]));
-    html += mcdBox(tA.MCD);
-    html += `</div>`;
-    html += '<div class="section-title" style="margin-top:22px">📘 Assigned Details</div>';
-    html += tableGeneric(d.assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
+    ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += box(k, tA[k]));
+    html += `<div class="stat mcd"><div class="k">Total MCD</div><div class="v">${tA.MCD}</div></div></div>`;
+    html += '<div class="section-title" style="margin-top:22px">📘 Assigned Details</div>' + tableGeneric(d.assigned, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','MCD','Status']);
   }
   if (type !== 'assigned') {
     html += `<div class="section-title" style="margin-top:22px">⏳ Pending Totals (${tP.count} rows)</div><div class="stat-grid">`;
-    ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += statBox(k, tP[k]));
-    html += `</div>`;
-    html += '<div class="section-title" style="margin-top:22px">⏳ Pending Details</div>';
-    html += tableGeneric(d.pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']);
+    ['FMCR','MCR','DNP1','DNP2','DNP3','Followup'].forEach(k => html += box(k, tP[k]));
+    html += '</div><div class="section-title" style="margin-top:22px">⏳ Pending Details</div>' + tableGeneric(d.pending, ['Date','Mentor','Branch','Category','FMCR','MCR','DNP1','DNP2','DNP3','Followup','Status']);
   }
-  if (d.leaves && d.leaves.length) {
-    html += '<div class="section-title" style="margin-top:22px">🌴 Leaves in range</div>';
-    html += '<div>' + d.leaves.map(l => `<span class="chip">${esc(l.Mentor)}: ${esc(l.FromDate)} → ${esc(l.ToDate)}</span>`).join('') + '</div>';
-  }
+  if (d.leaves && d.leaves.length)
+    html += '<div class="section-title" style="margin-top:22px">🌴 Leaves in range</div><div>' + d.leaves.map(l => `<span class="chip">${esc(l.Mentor)}: ${esc(l.FromDate)} → ${esc(l.ToDate)}</span>`).join('') + '</div>';
   $('dash_results').innerHTML = html;
 }
 
@@ -933,259 +723,146 @@ async function loadMonthlyMCD(){
   const from = $('mm_from').value, to = $('mm_to').value;
   if (!from || !to) return toast('Select from and to dates', 'err');
   btnBusy('btnMmLoad', 'Loading…');
-  const r = await api('getMonthlyMCD', STATE.token, from, to);
+  const r = unwrap(await api('getMonthlyMCD', STATE.token, from, to));
   btnDone('btnMmLoad');
   if (!r.ok) { $('mm_results').innerHTML = '<div class="empty" style="color:#dc2626">⚠ ' + esc(r.error) + '</div>'; return; }
-  renderMonthlyMCD(r.data);
-}
-
-function renderMonthlyMCD(d){
-  let html = '';
-  html += `<div class="section-title" style="margin-top:0">📅 ${esc(d.fromDate)} → ${esc(d.toDate)}</div>`;
-  html += `<div class="stat-grid">
-    <div class="stat mcd"><div class="k">Total MCD</div><div class="v">${d.totalMCD}</div></div>
-  </div>`;
-  html += '<div class="section-title" style="margin-top:22px">Per Mentor Breakdown</div>';
-  html += '<table><thead><tr><th>Mentor</th><th>MCD Total</th></tr></thead><tbody>';
-  d.mentors.forEach(m => {
-    html += `<tr><td>${esc(m)}</td><td><b>${d.perMentor[m] || 0}</b></td></tr>`;
-  });
+  const d = r.data;
+  let html = `<div class="section-title" style="margin-top:0">📅 ${esc(d.fromDate)} → ${esc(d.toDate)}</div><div class="stat-grid"><div class="stat mcd"><div class="k">Total MCD</div><div class="v">${d.totalMCD}</div></div></div>`;
+  html += '<div class="section-title" style="margin-top:22px">Per Mentor Breakdown</div><table><thead><tr><th>Mentor</th><th>MCD Total</th></tr></thead><tbody>';
+  Object.keys(d.perMentor).forEach(m => { html += `<tr><td>${esc(m)}</td><td><b>${d.perMentor[m] || 0}</b></td></tr>`; });
   html += '</tbody></table>';
-  const daily = Object.entries(d.dailyMCD).sort((a,b) => a[0].localeCompare(b[0]));
+  const daily = Object.entries(d.dailyMCD).sort((a, b) => a[0].localeCompare(b[0]));
   if (daily.length) {
-    html += '<div class="section-title" style="margin-top:22px">Daily MCD</div>';
-    html += '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>MCD</th></tr></thead><tbody>';
-    daily.forEach(([date, val]) => { html += `<tr><td>${esc(date)}</td><td>${val}</td></tr>`; });
+    html += '<div class="section-title" style="margin-top:22px">Daily MCD</div><div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>MCD</th></tr></thead><tbody>';
+    daily.forEach(([dt, v]) => { html += `<tr><td>${esc(dt)}</td><td>${v}</td></tr>`; });
     html += '</tbody></table></div>';
-  } else {
-    html += '<div class="empty" style="margin-top:22px">No MCD entries for this range.</div>';
-  }
+  } else html += '<div class="empty" style="margin-top:22px">No MCD entries for this range.</div>';
   $('mm_results').innerHTML = html;
 }
 
 async function downloadCSV(type){
-  const filters = {
-    from: $('d_from').value, to: $('d_to').value,
-    mentor: $('d_mentor').value, branch: $('d_branch').value, category: $('d_category').value
-  };
+  const filters = { from:$('d_from').value, to:$('d_to').value, mentor:$('d_mentor').value, branch:$('d_branch').value, category:$('d_category').value };
   const btnId = type === 'assigned' ? 'btnCsvA' : 'btnCsvP';
   btnBusy(btnId, 'Exporting…');
-  const csv = await api('exportCSV', STATE.token, filters, type);
+  const cr = unwrap(await api('exportCSV', STATE.token, filters, type));
   btnDone(btnId);
-  if (!csv || csv === 'Error') return toast('Export failed', 'err');
-  if (csv === 'No data') return toast('No data', 'err');
-  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  if (!cr.ok) return toast(cr.error || 'Export failed', 'err');
+  const blob = new Blob(['\uFEFF' + cr.data.csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = `GATE_${type}_${STATE.today}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url); toast('CSV downloaded', 'ok');
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('CSV downloaded', 'ok');
 }
 
 async function loadDailyStatus(){
   const from = $('ds_from').value, to = $('ds_to').value;
   if (!from || !to) return toast('Select dates', 'err');
   btnBusy('btnDsLoad', 'Loading…');
-  const r = await api('getDailyStatus', STATE.token, from, to);
+  const r = unwrap(await api('getDailyStatus', STATE.token, from, to));
   btnDone('btnDsLoad');
   if (!r.ok) return toast(r.error, 'err');
   const d = r.data;
-  let html = '<table style="font-size:12px"><thead><tr><th>Date</th>';
-  d.mentors.forEach(m => html += '<th style="text-align:center">' + esc(m.split(' ')[0]) + '</th>');
-  html += '</tr></thead><tbody>';
+  let html = '<table style="font-size:12px"><thead><tr><th>Date</th>' + d.mentors.map(m => '<th style="text-align:center">' + esc(m.split(' ')[0]) + '</th>').join('') + '</tr></thead><tbody>';
+  const look = { Final:['✅','#dcfce7'], Draft:['📝','#fef3c7'], Leave:['🌴','#e0e7ff'], Missing:['❌','#fee2e2'] };
   d.dates.forEach(date => {
-    const day = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short' });
-    const isSunday = day === 'Sun';
-    html += `<tr><td><b>${esc(date)}</b> <span class="muted">(${day})</span>${isSunday?' 🌞':''}</td>`;
-    d.mentors.forEach(m => {
-      const st = d.matrix[date][m];
-      let icon = '', bg = '';
-      if (st === 'Final') { icon = '✅'; bg = '#dcfce7'; }
-      else if (st === 'Draft') { icon = '📝'; bg = '#fef3c7'; }
-      else if (st === 'Leave') { icon = '🌴'; bg = '#e0e7ff'; }
-      else { icon = '❌'; bg = '#fee2e2'; }
-      html += `<td style="background:${bg};text-align:center;font-size:16px">${icon}</td>`;
-    });
+    const day = new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday:'short' });
+    html += `<tr><td><b>${esc(date)}</b> <span class="muted">(${day})</span>${day === 'Sun' ? ' 🌞' : ''}</td>`;
+    d.mentors.forEach(m => { const x = look[d.matrix[date][m]] || look.Missing; html += `<td style="background:${x[1]};text-align:center;font-size:16px">${x[0]}</td>`; });
     html += '</tr>';
   });
-  html += '</tbody></table>';
-  $('dailyStatusResults').innerHTML = html;
+  $('dailyStatusResults').innerHTML = html + '</tbody></table>';
 }
 
-async function renderAdminLists(){
-  $('cat_list').innerHTML = STATE.categories.map(c =>
-    `<span class="chip">${esc(c.Name)}<button onclick="removeCategory('${esc(c.Name)}')">✕</button></span>`
-  ).join('') || '<span class="muted">No categories</span>';
+/* ---------- Admin ---------- */
+function renderAdminLists(){
+  $('cat_list').innerHTML = STATE.categories.map(c => `<span class="chip">${esc(c.Name)}<button onclick="removeCategory('${esc(c.Name)}')">✕</button></span>`).join('') || '<span class="muted">No categories</span>';
   $('mentor_list').innerHTML = STATE.allMentors.map(m => {
     const inactive = (m.Active === false || String(m.Active).toLowerCase() === 'false');
-    const codeSet = m.MentorCode ? '🔑' : '⚠️';
-    return `<span class="chip ${inactive?'inactive':''}" title="Code: ${esc(m.MentorCode||'NOT SET')}">
-      ${esc(m.Name)} ${codeSet} <span class="muted">(${esc(m.Email)})</span>
-      ${inactive
-        ? `<button style="color:#16a34a" onclick="restoreMentor('${esc(m.Email)}')">↺</button>`
-        : `<button onclick="removeMentor('${esc(m.Email)}')">✕</button>
-           <button style="color:#6d28d9" onclick="changeMentorCode('${esc(m.Email)}')">🔑</button>`}
-    </span>`;
+    return `<span class="chip ${inactive ? 'inactive' : ''}" title="Code: ${esc(m.MentorCode || 'NOT SET')}">${esc(m.Name)} ${m.MentorCode ? '🔑' : '⚠️'} <span class="muted">(${esc(m.Email)})</span>` +
+      (inactive ? `<button style="color:#16a34a" onclick="restoreMentor('${esc(m.Email)}')">↺</button>`
+                : `<button onclick="removeMentor('${esc(m.Email)}')">✕</button><button style="color:#6d28d9" onclick="changeMentorCode('${esc(m.Email)}')">🔑</button>`) + '</span>';
   }).join('') || '<span class="muted">No mentors</span>';
-  $('branch_list').innerHTML = STATE.branches.map(b =>
-    `<span class="chip">${esc(b.Name)}<button onclick="removeBranch('${esc(b.Name)}')">✕</button></span>`
-  ).join('') || '<span class="muted">No branches</span>';
+  $('branch_list').innerHTML = STATE.branches.map(b => `<span class="chip">${esc(b.Name)}<button onclick="removeBranch('${esc(b.Name)}')">✕</button></span>`).join('') || '<span class="muted">No branches</span>';
 }
-
 async function loadCoAdmins(){
   const r = await api('adminListAdmins', STATE.token);
   if (!r || !r.ok) return;
-  const admins = r.data.admins;
-  $('admin_list').innerHTML = admins.map(a => {
-    const isPrimary = a.IsPrimary;
-    const inactive = !a.Active;
-    return `<span class="chip ${inactive?'inactive':''}">
-      ${esc(a.Name)} <span class="muted">(${esc(a.Email)})</span>
-      ${isPrimary ? '<span class="muted">★ Primary</span>' : `<button onclick="removeCoAdmin('${esc(a.Email)}')">✕</button>`}
-    </span>`;
-  }).join('') || '<span class="muted">No co-admins</span>';
+  $('admin_list').innerHTML = r.data.admins.map(a =>
+    `<span class="chip ${a.Active ? '' : 'inactive'}">${esc(a.Name)} <span class="muted">(${esc(a.Email)})</span>` +
+    (a.IsPrimary ? '<span class="muted">★ Primary</span>' : `<button onclick="removeCoAdmin('${esc(a.Email)}')">✕</button>`) + '</span>').join('') || '<span class="muted">No co-admins</span>';
 }
-
+async function adminCall(btnId, busy, fn, ...args){
+  if (btnId) btnBusy(btnId, busy); else showLoader(busy);
+  const r = unwrap(await api(fn, STATE.token, ...args));
+  if (btnId) btnDone(btnId); else hideLoader();
+  if (!r.ok) { toast(r.error, 'err'); return null; }
+  toast(r.data.message, 'ok'); return r;
+}
 async function addCoAdmin(){
-  const name = $('new_a_name').value.trim();
-  const email = $('new_a_email').value.trim().toLowerCase();
+  const name = $('new_a_name').value.trim(), email = $('new_a_email').value.trim().toLowerCase();
   if (!name || !email) return toast('Name and Email required', 'err');
-  btnBusy('btnAddAdmin', 'Adding…');
-  const r = unwrap(await api('adminAddAdmin', STATE.token, name, email));
-  btnDone('btnAddAdmin');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok');
-  $('new_a_name').value = ''; $('new_a_email').value = '';
-  loadCoAdmins();
+  if (await adminCall('btnAddAdmin', 'Adding…', 'adminAddAdmin', name, email)) { $('new_a_name').value = ''; $('new_a_email').value = ''; loadCoAdmins(); }
 }
-
-async function removeCoAdmin(email){
-  if (!confirm('Remove co-admin: ' + email + '?')) return;
-  showLoader('Removing…');
-  const r = unwrap(await api('adminRemoveAdmin', STATE.token, email));
-  hideLoader(); if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); loadCoAdmins();
-}
-
+async function removeCoAdmin(email){ if (confirm('Remove co-admin: ' + email + '?') && await adminCall(null, 'Removing…', 'adminRemoveAdmin', email)) loadCoAdmins(); }
 async function addCategory(){
   const name = $('new_cat').value.trim(); if (!name) return toast('Enter name', 'err');
-  btnBusy('btnAddCat', 'Adding…');
-  const r = unwrap(await api('adminAddCategory', STATE.token, name));
-  btnDone('btnAddCat');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); $('new_cat').value = ''; await refreshLists();
+  if (await adminCall('btnAddCat', 'Adding…', 'adminAddCategory', name)) { $('new_cat').value = ''; refreshLists(); }
 }
-async function removeCategory(name){
-  if (!confirm('Remove: ' + name + '?')) return;
-  showLoader('Removing…');
-  const r = unwrap(await api('adminRemoveCategory', STATE.token, name));
-  hideLoader(); if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); await refreshLists();
-}
+async function removeCategory(n){ if (confirm('Remove: ' + n + '?') && await adminCall(null, 'Removing…', 'adminRemoveCategory', n)) refreshLists(); }
 async function addMentor(){
-  const name = $('new_m_name').value.trim();
-  const email = $('new_m_email').value.trim().toLowerCase();
-  const code = $('new_m_code').value.trim();
+  const name = $('new_m_name').value.trim(), email = $('new_m_email').value.trim().toLowerCase(), code = $('new_m_code').value.trim();
   if (!name || !email || !code) return toast('All fields required', 'err');
-  btnBusy('btnAddMentor', 'Saving…');
-  const r = unwrap(await api('adminAddMentor', STATE.token, name, email, code));
-  btnDone('btnAddMentor');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok');
-  $('new_m_name').value = ''; $('new_m_email').value = ''; $('new_m_code').value = '';
-  await refreshLists();
+  if (await adminCall('btnAddMentor', 'Saving…', 'adminAddMentor', name, email, code)) { $('new_m_name').value = ''; $('new_m_email').value = ''; $('new_m_code').value = ''; refreshLists(); }
 }
-async function removeMentor(email){
-  if (!confirm('Deactivate: ' + email + '?')) return;
-  showLoader('Deactivating…');
-  const r = unwrap(await api('adminRemoveMentor', STATE.token, email));
-  hideLoader(); if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); await refreshLists();
-}
-async function restoreMentor(email){
-  showLoader('Restoring…');
-  const r = unwrap(await api('adminRestoreMentor', STATE.token, email));
-  hideLoader(); if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); await refreshLists();
-}
-async function changeMentorCode(email){
-  const code = prompt('Enter new Security Code for ' + email + ':');
-  if (!code || !code.trim()) return;
-  showLoader('Updating…');
-  const r = unwrap(await api('adminSetMentorCode', STATE.token, email, code.trim()));
-  hideLoader(); if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); await refreshLists();
+async function removeMentor(e){ if (confirm('Deactivate: ' + e + '?') && await adminCall(null, 'Deactivating…', 'adminRemoveMentor', e)) refreshLists(); }
+async function restoreMentor(e){ if (await adminCall(null, 'Restoring…', 'adminRestoreMentor', e)) refreshLists(); }
+async function changeMentorCode(e){
+  const code = prompt('Enter new Security Code for ' + e + ':');
+  if (code && code.trim() && await adminCall(null, 'Updating…', 'adminSetMentorCode', e, code.trim())) refreshLists();
 }
 async function setAdminCode(){
   const code = $('new_admin_code').value.trim();
   if (code.length < 4) return toast('Min 4 characters', 'err');
-  if (!confirm('Update admin code?')) return;
-  btnBusy('btnSetAdminCode', 'Updating…');
-  const r = unwrap(await api('adminSetAdminCode', STATE.token, code));
-  btnDone('btnSetAdminCode');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); $('new_admin_code').value = '';
+  if (confirm('Update admin code?') && await adminCall('btnSetAdminCode', 'Updating…', 'adminSetAdminCode', code)) $('new_admin_code').value = '';
 }
 async function addBranch(){
   const name = $('new_branch').value.trim(); if (!name) return toast('Enter name', 'err');
-  btnBusy('btnAddBranch', 'Adding…');
-  const r = unwrap(await api('adminAddBranch', STATE.token, name));
-  btnDone('btnAddBranch');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); $('new_branch').value = ''; await refreshLists();
+  if (await adminCall('btnAddBranch', 'Adding…', 'adminAddBranch', name)) { $('new_branch').value = ''; refreshLists(); }
 }
-async function removeBranch(name){
-  if (!confirm('Remove: ' + name + '?')) return;
-  showLoader('Removing…');
-  const r = unwrap(await api('adminRemoveBranch', STATE.token, name));
-  hideLoader(); if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok'); await refreshLists();
-}
+async function removeBranch(n){ if (confirm('Remove: ' + n + '?') && await adminCall(null, 'Removing…', 'adminRemoveBranch', n)) refreshLists(); }
 async function refreshLists(){
   showLoader('Refreshing…');
   const r = unwrap(await api('getBootstrap', STATE.token));
   hideLoader(); if (!r.ok) return;
-  STATE.mentors = r.data.mentors; STATE.allMentors = r.data.allMentors;
-  STATE.categories = r.data.categories; STATE.branches = r.data.branches;
-  populateSelects(); renderAdminLists();
+  STATE.mentors = r.data.mentors; STATE.allMentors = r.data.allMentors; STATE.categories = r.data.categories; STATE.branches = r.data.branches;
+  const keep = { d: $('r_date').value, m: $('r_mentor').value, b: $('r_branch').value, c: $('r_category').value };
+  populateSelects();
+  $('r_date').value = keep.d; if (keep.m) $('r_mentor').value = keep.m; if (keep.b) $('r_branch').value = keep.b; if (keep.c) $('r_category').value = keep.c;
+  renderAdminLists();
 }
 async function submitOverride(){
-  const payload = {
-    date: $('ov_date').value, mentor: $('ov_mentor').value,
-    branch: $('ov_branch').value, category: $('ov_category').value,
-    a_fmcr: $('ov_a_FMCR').value || 0, a_mcr: $('ov_a_MCR').value || 0,
-    a_dnp1: $('ov_a_DNP1').value || 0, a_dnp2: $('ov_a_DNP2').value || 0, a_dnp3: $('ov_a_DNP3').value || 0,
-    a_followup: $('ov_a_Followup').value || 0, a_mcd: $('ov_a_MCD').value || 0,
-    p_fmcr: $('ov_p_FMCR').value || 0, p_mcr: $('ov_p_MCR').value || 0,
-    p_dnp1: $('ov_p_DNP1').value || 0, p_dnp2: $('ov_p_DNP2').value || 0, p_dnp3: $('ov_p_DNP3').value || 0,
-    p_followup: $('ov_p_Followup').value || 0,
-    status: 'Final', override: true
-  };
+  const v = id => $(id).value || 0;
+  const payload = { date:$('ov_date').value, mentor:$('ov_mentor').value, branch:$('ov_branch').value, category:$('ov_category').value,
+    a_fmcr:v('ov_a_FMCR'), a_mcr:v('ov_a_MCR'), a_dnp1:v('ov_a_DNP1'), a_dnp2:v('ov_a_DNP2'), a_dnp3:v('ov_a_DNP3'), a_followup:v('ov_a_Followup'), a_mcd:v('ov_a_MCD'),
+    p_fmcr:v('ov_p_FMCR'), p_mcr:v('ov_p_MCR'), p_dnp1:v('ov_p_DNP1'), p_dnp2:v('ov_p_DNP2'), p_dnp3:v('ov_p_DNP3'), p_followup:v('ov_p_Followup'), status:'Final' };
   if (!payload.date || !payload.mentor || !payload.branch || !payload.category) return toast('Fill all', 'err');
   btnBusy('btnOverride', 'Saving…');
   const r = unwrap(await api('saveReport', STATE.token, payload));
   btnDone('btnOverride');
   if (!r.ok) return toast(r.error, 'err');
-  toast('Override: ' + r.data.message, 'ok');
+  showSuccess('Override Saved ✅', r.data.message + '\n' + payload.date + ' · ' + payload.mentor);
 }
 async function unlockReport(){
-  const date = $('ul_date').value, mentor = $('ul_mentor').value;
-  const branch = $('ul_branch').value, category = $('ul_category').value;
+  const date = $('ul_date').value, mentor = $('ul_mentor').value, branch = $('ul_branch').value, category = $('ul_category').value;
   if (!date || !mentor || !branch || !category) return toast('Fill all fields', 'err');
   if (!confirm('Unlock report for ' + mentor + ' on ' + date + '?')) return;
-  btnBusy('btnUnlock', 'Unlocking…');
-  const r = unwrap(await api('adminUnlockReport', STATE.token, date, mentor, branch, category));
-  btnDone('btnUnlock');
-  if (!r.ok) return toast(r.error, 'err');
-  toast(r.data.message, 'ok');
+  await adminCall('btnUnlock', 'Unlocking…', 'adminUnlockReport', date, mentor, branch, category);
 }
 
+/* ---------- Init ---------- */
 (async function init(){
   const ping = await api('pingServer');
-  console.log('[pingServer]', ping);
-  if (!ping || !ping.ok) {
-    showDiag('❌ Backend unreachable.\n\nError: ' + (ping && ping.error ? ping.error : 'unknown'));
-  }
+  if (!ping || !ping.ok) showDiag('❌ Backend unreachable.\n\nError: ' + (ping && ping.error ? ping.error : 'unknown'));
   const saved = getToken();
   if (saved) {
     STATE.token = saved;
@@ -1199,8 +876,8 @@ async function unlockReport(){
 })();
 
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  if (!$('stepEmail').classList.contains('hidden')) sendOtp();
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  if (!$('stepEmail').classList.contains('hidden') && !$('loginScreen').classList.contains('hidden')) sendOtp();
   else if (!$('stepOtp').classList.contains('hidden')) goToStep3();
   else if (!$('stepCode').classList.contains('hidden')) verifyLogin();
 });
